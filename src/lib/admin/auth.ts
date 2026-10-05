@@ -19,14 +19,14 @@ const GENERIC_ACCESS_ERROR = "You do not have access to the admin area.";
 function getDevAdminCredentials() {
   return {
     email: (process.env.VEMEE_ADMIN_EMAIL || "").trim().toLowerCase(),
-    password: process.env.VEMEE_ADMIN_PASSWORD || "",
+    password: (process.env.VEMEE_ADMIN_PASSWORD || "").trim(),
   };
 }
 
 /**
  * Authenticates an admin with email/password.
- * - Non-production: allows VEMEE_ADMIN_EMAIL / VEMEE_ADMIN_PASSWORD bootstrap
- * - Supabase mode: Auth sign-in + server-side profiles.is_admin check
+ * 1) Env bootstrap (VEMEE_ADMIN_EMAIL / VEMEE_ADMIN_PASSWORD) when configured
+ * 2) Supabase Auth + profiles.is_admin when keys are set
  * Never reveals whether an email is an admin account.
  */
 export async function signInAdmin(
@@ -38,12 +38,11 @@ export async function signInAdmin(
     return { ok: false, error: GENERIC_AUTH_ERROR };
   }
 
-  // Local bootstrap so /admin works before Supabase Auth users are seeded.
-  if (process.env.NODE_ENV !== "production") {
-    const creds = getDevAdminCredentials();
-    if (creds.email && email === creds.email) {
-      return signInAdminWithDev(email, password);
-    }
+  const creds = getDevAdminCredentials();
+
+  // Env-based admin works on local and Vercel when these vars are set.
+  if (creds.email && creds.password && email === creds.email) {
+    return signInAdminWithDev(email, password);
   }
 
   if (isSupabaseConfigured()) {
@@ -148,11 +147,9 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
     cookieStore.get(getAdminCookieName())?.value,
   );
 
-  // Prefer verified admin cookie in development bootstrap.
+  # Prefer verified admin cookie from env bootstrap.
   if (cookieSession?.isAdmin && cookieSession.mode === "development") {
-    if (process.env.NODE_ENV !== "production") {
-      return cookieSession;
-    }
+    return cookieSession;
   }
 
   if (!isSupabaseConfigured()) {
@@ -161,9 +158,7 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
 
   const supabase = await createClient();
   if (!supabase) {
-    return cookieSession?.isAdmin && process.env.NODE_ENV !== "production"
-      ? cookieSession
-      : null;
+    return cookieSession?.isAdmin ? cookieSession : null;
   }
 
   const {
@@ -171,9 +166,7 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return cookieSession?.isAdmin && process.env.NODE_ENV !== "production"
-      ? cookieSession
-      : null;
+    return cookieSession?.isAdmin ? cookieSession : null;
   }
 
   const { data: profile } = await supabase

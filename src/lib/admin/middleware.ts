@@ -72,12 +72,8 @@ async function resolveAccess(
     request.cookies.get(getAdminCookieName())?.value,
   );
 
-  // Development bootstrap cookie is authoritative in non-production.
-  if (
-    cookieAdmin?.isAdmin &&
-    cookieAdmin.mode === "development" &&
-    process.env.NODE_ENV !== "production"
-  ) {
+  // Env admin cookie is authoritative when present.
+  if (cookieAdmin?.isAdmin && cookieAdmin.mode === "development") {
     return { authenticated: true, isAdmin: true };
   }
 
