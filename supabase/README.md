@@ -8,6 +8,12 @@
 | `migrations/20260326120100_rls_policies.sql` | Row Level Security policies |
 | `QUERIES.sql` | Copy-paste operational / discover queries |
 
+## Auth modes
+
+Without `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`, the app uses development OTP from `VEMEE_DEV_OTP` (default `6666`). Profiles persist in browser local storage via `lib/profile/service.ts`.
+
+When keys are set, the same auth/profile APIs switch to Supabase Auth + `public.profiles`.
+
 ## How to run
 
 ### Option A — Supabase CLI
@@ -21,23 +27,23 @@ supabase db push
 ### Option B — SQL Editor
 
 1. Open Supabase Dashboard → SQL Editor
-2. Run `migrations/20260326120000_initial_schema.sql`
-3. Run `migrations/20260326120100_rls_policies.sql`
-4. Use `QUERIES.sql` for smoke checks and common app queries
+2. Run migrations in order under `migrations/`
+3. Use `QUERIES.sql` for smoke checks
 
 ## Auth setup (Dashboard)
 
 1. Authentication → Providers → enable **Phone**
-2. Configure SMS provider (Twilio / MessageBird / etc.)
+2. Configure SMS provider
 3. Set redirect URLs for local (`http://localhost:3000`) and production
-4. Enforce 18+ via signup UI + `profiles.age_confirmed_18`
 
 ## App env vars
 
+Copy from `.env.local.example`:
+
 ```env
+VEMEE_DEV_OTP=6666
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-Wire these into the Next.js auth forms when connecting live OTP.
+Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser.

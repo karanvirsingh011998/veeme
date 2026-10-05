@@ -29,6 +29,7 @@ export type Database = {
           city: string | null;
           avatar_url: string | null;
           account_status: string;
+          is_admin: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -46,6 +47,7 @@ export type Database = {
           city?: string | null;
           avatar_url?: string | null;
           account_status?: string;
+          is_admin?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -63,6 +65,7 @@ export type Database = {
           city?: string | null;
           avatar_url?: string | null;
           account_status?: string;
+          is_admin?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -70,7 +73,12 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      is_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+    };
     Enums: Record<string, never>;
   };
 };

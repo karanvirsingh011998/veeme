@@ -1,0 +1,84 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(234, 243, 238, 0.95), transparent 45%),
+    var(--vemee-bg);
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 32px 22px 28px;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.logoMark {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--vemee-green);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.logoText {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 34px);
+  letter-spacing: -1px;
+  font-weight: 900;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  color: var(--vemee-muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.back {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.back a {
+  color: var(--vemee-muted);
+  font-weight: 700;
+}
+
+.success {
+  margin: 0;
+  font-size: 13px;
+  color: var(--vemee-green);
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 36px 32px 30px;
+  }
+}

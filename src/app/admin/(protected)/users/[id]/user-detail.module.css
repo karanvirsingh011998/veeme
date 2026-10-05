@@ -1,0 +1,32 @@
+.back {
+  color: var(--vemee-green);
+  font-weight: 800;
+}
+
+.grid {
+  margin-top: 24px;
+  display: grid;
+  gap: 12px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.grid dt {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--vemee-muted);
+}
+
+.grid dd {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 750;
+}

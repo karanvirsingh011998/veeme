@@ -1,0 +1,70 @@
+.page {
+  max-width: 1000px;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--vemee-green);
+}
+
+.title {
+  margin: 8px 0 0;
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -1px;
+  font-weight: 900;
+}
+
+.copy,
+.hint {
+  margin: 10px 0 0;
+  color: var(--vemee-muted);
+  font-size: 15px;
+}
+
+.hint {
+  font-size: 13px;
+}
+
+.empty {
+  margin-top: 24px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.tableWrap {
+  margin-top: 20px;
+  overflow-x: auto;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--vemee-line);
+  font-size: 14px;
+}
+
+.table th {
+  font-size: 12px;
+  color: var(--vemee-muted);
+  font-weight: 800;
+  background: var(--vemee-bg);
+}
+
+.link {
+  color: var(--vemee-green);
+  font-weight: 800;
+}

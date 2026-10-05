@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { requestOtp } from "@/lib/auth/otp";
+import { requestOtp } from "@/lib/auth/auth";
 import { buildOtpRoute } from "@/lib/auth/routes";
 import { saveSignupDraft } from "@/lib/auth/signup-draft";
 import { DEFAULT_COUNTRY_DIAL_CODE } from "@/lib/countries";

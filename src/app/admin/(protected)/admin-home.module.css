@@ -1,0 +1,68 @@
+.page {
+  max-width: 900px;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--vemee-green);
+}
+
+.title {
+  margin: 8px 0 0;
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -1px;
+  font-weight: 900;
+}
+
+.copy {
+  margin: 10px 0 0;
+  color: var(--vemee-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.grid {
+  margin-top: 24px;
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.card,
+.cardMuted {
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 18px;
+}
+
+.card:hover {
+  border-color: #d3e2da;
+}
+
+.card h2,
+.cardMuted h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.card p,
+.cardMuted p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--vemee-muted);
+  line-height: 1.4;
+}
+
+.cardMuted {
+  opacity: 0.72;
+}

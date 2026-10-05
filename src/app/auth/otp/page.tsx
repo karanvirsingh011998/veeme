@@ -1,6 +1,6 @@
 import { AuthShell } from "@/components/auth/AuthShell";
 import { OtpForm } from "@/components/auth/OtpForm";
-import type { OtpMode } from "@/lib/auth/otp";
+import type { OtpMode } from "@/lib/auth/auth";
 import { DEFAULT_COUNTRY_DIAL_CODE } from "@/lib/countries";
 import { sanitizePhoneNumber } from "@/lib/phone";
 import { redirect } from "next/navigation";

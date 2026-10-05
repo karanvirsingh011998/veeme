@@ -1,0 +1,81 @@
+.form {
+  margin-top: 24px;
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--vemee-muted);
+}
+
+.field input {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-md);
+  background: var(--vemee-bg);
+  padding: 12px 14px;
+  font-size: 16px;
+  color: var(--vemee-ink);
+  outline: none;
+}
+
+.field input:focus {
+  border-color: #b9cfc4;
+  box-shadow: 0 0 0 3px rgba(35, 96, 76, 0.1);
+  background: #fff;
+}
+
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap input {
+  padding-right: 72px;
+}
+
+.eye {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--vemee-green);
+  font-size: 13px;
+  font-weight: 800;
+  min-height: 40px;
+  padding: 0 10px;
+}
+
+.error,
+.formError {
+  margin: 0;
+  font-size: 12px;
+  color: #b44;
+  line-height: 1.35;
+}
+
+.submit {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 4px;
+}
+
+.forgot {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.forgot a {
+  color: var(--vemee-green);
+  font-weight: 800;
+}

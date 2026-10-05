@@ -1,4 +1,4 @@
-import type { OtpMode } from "@/lib/auth/otp";
+import type { OtpMode } from "@/lib/auth/auth";
 
 export function buildOtpRoute(params: {
   mode: OtpMode;

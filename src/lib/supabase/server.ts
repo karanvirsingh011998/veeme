@@ -1,15 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isSupabaseConfigured } from "@/lib/auth/config";
 import type { Database } from "@/types/database";
 
 /**
- * Server Supabase client for Route Handlers and Server Components.
+ * Server Supabase client. Returns null when env is not configured.
  */
 export async function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
+  if (!isSupabaseConfigured()) return null;
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const cookieStore = await cookies();
 
   return createServerClient<Database>(url, key, {

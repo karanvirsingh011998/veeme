@@ -1,0 +1,40 @@
+.shell {
+  min-height: 100dvh;
+  background: var(--vemee-bg);
+  color: var(--vemee-ink);
+}
+
+.mainCol {
+  min-width: 0;
+  width: 100%;
+}
+
+.scroll {
+  min-height: 100dvh;
+  padding-bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+.loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: var(--vemee-bg);
+  color: var(--vemee-muted);
+  font-weight: 700;
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    max-width: 1280px;
+    margin-inline: auto;
+    border-inline: 1px solid var(--vemee-line);
+    background: var(--vemee-bg);
+  }
+
+  .scroll {
+    padding-bottom: 40px;
+    max-width: 1040px;
+  }
+}
