@@ -99,7 +99,6 @@ export async function registerUserInDatabase(
       display_name: `${draft.firstName.trim()} ${draft.lastName.trim()}`.trim(),
       phone_verified_at: now,
       account_status: "active",
-      is_admin: false,
       updated_at: now,
     })
     .select("*")
