@@ -147,7 +147,7 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
     cookieStore.get(getAdminCookieName())?.value,
   );
 
-  # Prefer verified admin cookie from env bootstrap.
+  // Prefer verified admin cookie from env bootstrap.
   if (cookieSession?.isAdmin && cookieSession.mode === "development") {
     return cookieSession;
   }
