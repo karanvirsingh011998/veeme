@@ -1,0 +1,109 @@
+.wrap {
+  display: grid;
+  gap: 6px;
+}
+
+.groupLabel {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--vemee-muted);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(108px, 34%) minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.codeField {
+  position: relative;
+  min-width: 0;
+}
+
+.select {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-md);
+  background: var(--vemee-bg);
+  padding: 12px 28px 12px 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--vemee-ink);
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: #b9cfc4;
+  box-shadow: 0 0 0 3px rgba(35, 96, 76, 0.1);
+  background: #fff;
+}
+
+.invalid {
+  border-color: #d08080;
+}
+
+.codeHint {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.numberField input {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-md);
+  background: var(--vemee-bg);
+  padding: 12px 14px;
+  font-size: 16px;
+  color: var(--vemee-ink);
+  outline: none;
+}
+
+.numberField input:focus {
+  border-color: #b9cfc4;
+  box-shadow: 0 0 0 3px rgba(35, 96, 76, 0.1);
+  background: #fff;
+}
+
+.invalidInput {
+  border-color: #d08080;
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: #b44;
+  line-height: 1.35;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 360px) {
+  .row {
+    grid-template-columns: minmax(96px, 32%) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .select {
+    padding-inline: 10px;
+    font-size: 14px;
+  }
+}

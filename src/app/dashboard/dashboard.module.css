@@ -1,0 +1,64 @@
+.page {
+  min-height: 100dvh;
+  background: var(--vemee-bg);
+}
+
+.header {
+  height: var(--header-h-mobile);
+  display: flex;
+  align-items: center;
+  padding-inline: 16px;
+  border-bottom: 1px solid var(--vemee-line);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+}
+
+.main {
+  padding: 32px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 28px 22px;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--vemee-green);
+}
+
+.title {
+  margin: 8px 0 0;
+  font-size: clamp(28px, 5vw, 36px);
+  letter-spacing: -1px;
+  font-weight: 900;
+}
+
+.copy,
+.meta {
+  margin: 12px 0 0;
+  color: var(--vemee-muted);
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.link {
+  display: inline-flex;
+  margin-top: 22px;
+  color: var(--vemee-green);
+  font-weight: 800;
+}

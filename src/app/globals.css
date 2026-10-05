@@ -1,26 +1,265 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --vemee-bg: #f7f9f7;
+  --vemee-surface: #ffffff;
+  --vemee-ink: #17221e;
+  --vemee-muted: #78827e;
+  --vemee-line: #e5eae7;
+  --vemee-green: #23604c;
+  --vemee-green-2: #2d6d58;
+  --vemee-green-soft: #eaf3ee;
+  --vemee-border-soft: #d2dfd8;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --shadow-card: 0 3px 14px rgba(25, 42, 35, 0.055);
+  --shadow-soft: 0 2px 8px rgba(28, 37, 34, 0.025);
+  --shadow-float: 0 12px 32px rgba(25, 42, 35, 0.08);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-30: 120px;
+
+  --container: 1240px;
+  --header-h: 64px;
+  --header-h-mobile: 56px;
+
+  --font-sans: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-vemee-bg: var(--vemee-bg);
+  --color-vemee-surface: var(--vemee-surface);
+  --color-vemee-ink: var(--vemee-ink);
+  --color-vemee-muted: var(--vemee-muted);
+  --color-vemee-line: var(--vemee-line);
+  --color-vemee-green: var(--vemee-green);
+  --color-vemee-green-2: var(--vemee-green-2);
+  --color-vemee-green-soft: var(--vemee-green-soft);
+  --color-vemee-border-soft: var(--vemee-border-soft);
+  --font-sans: var(--font-sans);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --shadow-card: var(--shadow-card);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--vemee-bg);
+  color: var(--vemee-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-inline: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-inline: 32px;
+  }
+}
+
+.section {
+  padding-block: 56px;
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding-block: 80px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .section {
+    padding-block: 96px;
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.2px;
+  border: 1px solid transparent;
+  transition:
+    transform 0.15s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--vemee-green);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(35, 96, 76, 0.18);
+}
+
+.btn-primary:hover {
+  background: var(--vemee-green-2);
+  box-shadow: 0 4px 14px rgba(35, 96, 76, 0.22);
+}
+
+.btn-secondary {
+  background: var(--vemee-surface);
+  color: var(--vemee-green);
+  border-color: var(--vemee-border-soft);
+}
+
+.btn-secondary:hover {
+  background: var(--vemee-green-soft);
+  border-color: #c6d8cf;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--vemee-ink);
+  border-color: transparent;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-weight: 700;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.card {
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--vemee-green-soft);
+  color: var(--vemee-green);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.section-eyebrow {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--vemee-green);
+  letter-spacing: 0.02em;
+  margin: 0 0 10px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.08;
+  letter-spacing: -1.2px;
+  font-weight: 900;
+}
+
+.section-copy {
+  margin: 12px 0 0;
+  color: var(--vemee-muted);
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.5;
+  max-width: 42ch;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

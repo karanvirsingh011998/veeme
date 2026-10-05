@@ -1,0 +1,77 @@
+.section {
+  background: var(--vemee-bg);
+}
+
+.grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  min-height: 112px;
+  padding: 18px 16px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  color: var(--vemee-ink);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.card:hover {
+  border-color: #d3e2da;
+  box-shadow: 0 6px 18px rgba(25, 42, 35, 0.07);
+  transform: translateY(-1px);
+}
+
+.card:active {
+  transform: scale(0.99);
+}
+
+.icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.label {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    min-height: 120px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 36px;
+  }
+
+  .card {
+    min-height: 128px;
+    padding: 20px 16px;
+  }
+
+  .icon {
+    font-size: 30px;
+  }
+}

@@ -1,0 +1,261 @@
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
+  min-height: 360px;
+}
+
+.phone {
+  position: relative;
+  z-index: 2;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: 28px;
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  width: min(100%, 320px);
+  margin-inline: auto;
+}
+
+.phoneBar {
+  height: 44px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--vemee-line);
+  font-weight: 900;
+  letter-spacing: -0.6px;
+}
+
+.dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--vemee-line);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+.phoneBody {
+  padding: 14px 14px 18px;
+  background: var(--vemee-bg);
+}
+
+.kicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--vemee-green);
+}
+
+.panelTitle {
+  margin: 4px 0 12px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.personRow {
+  display: grid;
+  gap: 8px;
+}
+
+.person {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: 15px;
+  padding: 10px;
+  box-shadow: var(--shadow-soft);
+}
+
+.person strong {
+  display: block;
+  font-size: 13px;
+  letter-spacing: -0.2px;
+}
+
+.person p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--vemee-muted);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #e5eee9;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex: none;
+}
+
+.meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.verified {
+  color: var(--vemee-green);
+}
+
+.groupCard {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: 17px;
+  padding: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.groupThumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  background: #e7f0eb;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  flex: none;
+}
+
+.groupCard strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.groupCard p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: var(--vemee-muted);
+}
+
+.tag {
+  display: inline-block;
+  background: var(--vemee-green-soft);
+  color: var(--vemee-green);
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.progress {
+  height: 5px;
+  background: #edf0ee;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--vemee-green);
+  border-radius: 99px;
+}
+
+.float {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 12px 14px;
+  gap: 10px;
+  align-items: center;
+  max-width: 230px;
+}
+
+.float span {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--vemee-green-soft);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.float strong {
+  display: block;
+  font-size: 13px;
+  letter-spacing: -0.2px;
+}
+
+.float p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--vemee-muted);
+}
+
+@media (min-width: 1024px) {
+  .stage {
+    max-width: 520px;
+    min-height: 480px;
+  }
+
+  .phone {
+    width: 340px;
+    margin-left: 28px;
+  }
+
+  .float {
+    display: flex;
+  }
+
+  .floatTrek {
+    top: 36px;
+    right: 0;
+  }
+
+  .floatWorkout {
+    bottom: 110px;
+    left: 0;
+  }
+
+  .floatCoffee {
+    bottom: 24px;
+    right: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
+  .floatTrek {
+    animation: floatY 5.5s ease-in-out infinite;
+  }
+
+  .floatWorkout {
+    animation: floatY 6.2s ease-in-out infinite reverse;
+  }
+
+  .floatCoffee {
+    animation: floatY 7s ease-in-out infinite;
+  }
+}
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}

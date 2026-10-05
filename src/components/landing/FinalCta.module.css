@@ -1,0 +1,43 @@
+.section {
+  padding-top: 24px;
+}
+
+.panel {
+  background: var(--vemee-green-soft);
+  border: 1px solid #d7e5dd;
+  border-radius: var(--radius-xl);
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -1.2px;
+  font-weight: 900;
+  max-width: 16ch;
+  margin-inline: auto;
+}
+
+.copy {
+  margin: 14px auto 0;
+  max-width: 38ch;
+  color: var(--vemee-muted);
+  font-size: clamp(15px, 1.6vw, 17px);
+  line-height: 1.45;
+}
+
+.actions {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .panel {
+    padding: 64px 48px;
+  }
+}

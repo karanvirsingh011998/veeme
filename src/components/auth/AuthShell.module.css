@@ -1,0 +1,86 @@
+.page {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(234, 243, 238, 0.95), transparent 45%),
+    var(--vemee-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  height: var(--header-h-mobile);
+  display: flex;
+  align-items: center;
+  padding-inline: 16px;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8px 16px 40px;
+}
+
+.cardWide {
+  max-width: 480px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 28px 20px 24px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(28px, 6vw, 34px);
+  line-height: 1.08;
+  letter-spacing: -1px;
+  font-weight: 900;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  color: var(--vemee-muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--vemee-muted);
+}
+
+.footer a {
+  color: var(--vemee-green);
+  font-weight: 800;
+}
+
+@media (min-width: 768px) {
+  .main {
+    align-items: center;
+    padding-block: 40px;
+  }
+
+  .card {
+    padding: 36px 32px 28px;
+  }
+
+  .header {
+    height: var(--header-h);
+    padding-inline: 32px;
+  }
+}
