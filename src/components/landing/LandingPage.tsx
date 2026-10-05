@@ -1,15 +1,15 @@
 import { SiteHeader } from "./SiteHeader";
 import { Hero } from "./Hero";
 import { Categories } from "./Categories";
+import { PlansDifferentiator } from "./PlansDifferentiator";
 import { HowItWorks } from "./HowItWorks";
-import { PeoplePreview } from "./PeoplePreview";
 import { Safety } from "./Safety";
-import { Communities } from "./Communities";
+import { Lifestyle } from "./Lifestyle";
 import { FinalCta } from "./FinalCta";
 import { Footer } from "./Footer";
 
 /**
- * Public Vemee landing page composition (mobile-first section order).
+ * Public Vemee landing page — plans-first social discovery experience.
  */
 export function LandingPage() {
   return (
@@ -18,10 +18,10 @@ export function LandingPage() {
       <main>
         <Hero />
         <Categories />
+        <PlansDifferentiator />
         <HowItWorks />
-        <PeoplePreview />
         <Safety />
-        <Communities />
+        <Lifestyle />
         <FinalCta />
       </main>
       <Footer />

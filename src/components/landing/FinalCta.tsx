@@ -2,26 +2,32 @@ import { Button } from "@/components/ui/Button";
 import styles from "./FinalCta.module.css";
 
 /**
- * Closing CTA — restrained sage container with Get started + Log in.
+ * Closing CTA — conversion-focused end of the landing journey.
  */
 export function FinalCta() {
   return (
-    <section className={`section ${styles.section}`}>
+    <section
+      id="contact"
+      className={`section ${styles.section}`}
+      aria-labelledby="final-cta-heading"
+    >
       <div className="container">
         <div className={styles.panel}>
-          <h2 className={styles.title}>
-            Your next plan starts with the right person.
+          <p className={styles.brand}>Vemee</p>
+          <h2 id="final-cta-heading" className={styles.title}>
+            Find your people. Make better plans.
           </h2>
           <p className={styles.copy}>
-            Create your profile, verify once, and start discovering people and
-            experiences nearby.
+            Whatever you want to do, there are people out there who want to do
+            it too.
           </p>
+          <p className={styles.tagline}>Find your people. Do more together.</p>
           <div className={styles.actions}>
             <Button href="/signup" variant="primary">
-              Get started
+              Get Started
             </Button>
-            <Button href="/login" variant="secondary">
-              Log in
+            <Button href="#discover" variant="secondary">
+              Explore Vemee
             </Button>
           </div>
         </div>

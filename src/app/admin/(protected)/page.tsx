@@ -14,23 +14,23 @@ export default async function AdminHomePage() {
       <p className={styles.kicker}>Overview</p>
       <h1 className={styles.title}>Admin dashboard</h1>
       <p className={styles.copy}>
-        Signed in as <strong>{session?.email}</strong>. Manage Vemee members,
-        moderation, and platform health from here.
+        Signed in as <strong>{session?.email}</strong>. Jump into profiles,
+        revenue, or chats.
       </p>
 
       <div className={styles.grid}>
-        <Link href="/admin/users" className={styles.card}>
-          <h2>Users</h2>
-          <p>Browse profiles, verification status, and account details.</p>
+        <Link href="/admin/profiles" className={styles.card}>
+          <h2>Profiles</h2>
+          <p>Full member profiles, verification, and account details.</p>
         </Link>
-        <div className={styles.cardMuted}>
-          <h2>Moderation</h2>
-          <p>Reports and safety tools — coming next.</p>
-        </div>
-        <div className={styles.cardMuted}>
-          <h2>Bookings</h2>
-          <p>Marketplace booking oversight — coming next.</p>
-        </div>
+        <Link href="/admin/revenue" className={styles.card}>
+          <h2>Revenue</h2>
+          <p>Payment totals, pending amounts, and transaction history.</p>
+        </Link>
+        <Link href="/admin/chats" className={styles.card}>
+          <h2>Chats</h2>
+          <p>Browse conversations and open full message threads.</p>
+        </Link>
       </div>
     </div>
   );

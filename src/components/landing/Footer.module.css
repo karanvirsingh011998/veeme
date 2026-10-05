@@ -1,40 +1,46 @@
 .footer {
-  padding: 40px 0 32px;
+  padding: 48px 0 32px;
   border-top: 1px solid var(--vemee-line);
   background: var(--vemee-surface);
 }
 
 .inner {
   display: grid;
-  gap: 24px;
+  gap: 28px;
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -0.9px;
+  color: var(--vemee-green);
 }
 
 .brand p {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   color: var(--vemee-muted);
   font-size: 14px;
   max-width: 28ch;
+  line-height: 1.45;
 }
 
-.links {
+.links,
+.legalNav {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px 16px;
 }
 
-.links a {
+.links a,
+.legalNav a {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 650;
   color: var(--vemee-muted);
 }
 
-.links a:hover {
+.links a:hover,
+.legalNav a:hover {
   color: var(--vemee-ink);
 }
 
@@ -52,12 +58,13 @@
 
 @media (min-width: 768px) {
   .inner {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1.2fr 1fr 1fr;
     align-items: start;
+    gap: 40px;
   }
 
-  .links {
-    grid-template-columns: repeat(3, auto);
-    justify-content: end;
+  .links,
+  .legalNav {
+    grid-template-columns: 1fr;
   }
 }

@@ -1,8 +1,7 @@
 import styles from "./ProductVisual.module.css";
 
 /**
- * CSS product mockup reflecting Vemee app cards (people + group experience).
- * Used in both mobile and desktop hero compositions.
+ * Activity-discovery visual for the hero — plan-first cards, not dating profiles.
  */
 export function ProductVisual() {
   return (
@@ -10,72 +9,59 @@ export function ProductVisual() {
       <div className={styles.phone}>
         <div className={styles.phoneBar}>
           <span>Vemee</span>
-          <span className={styles.dot}>♡</span>
+          <span className={styles.live}>Live plans</span>
         </div>
         <div className={styles.phoneBody}>
-          <p className={styles.kicker}>For You</p>
-          <p className={styles.panelTitle}>People you may connect with</p>
+          <p className={styles.kicker}>Plans near you</p>
+          <p className={styles.panelTitle}>People looking to do the same</p>
 
-          <div className={styles.personRow}>
-            <div className={styles.person}>
-              <div className={styles.avatar}>👩</div>
+          <div className={styles.planList}>
+            <div className={styles.plan}>
+              <div className={`${styles.badge} ${styles.badgeOutdoor}`}>🏏</div>
               <div>
-                <strong>Priya</strong>
-                <p>Travel Buddy</p>
-                <div className={styles.meta}>
-                  <span>★ 4.8</span>
-                  <span className={styles.verified}>✓ Verified</span>
-                </div>
+                <strong>Weekend cricket</strong>
+                <p>8 nearby · Saturday evening</p>
               </div>
             </div>
-            <div className={styles.person}>
-              <div className={styles.avatar}>🧔</div>
+            <div className={styles.plan}>
+              <div className={`${styles.badge} ${styles.badgeGaming}`}>🎮</div>
               <div>
-                <strong>Rahul</strong>
-                <p>Workout Partner</p>
-                <div className={styles.meta}>
-                  <span>★ 4.9</span>
-                  <span className={styles.verified}>✓ Verified</span>
-                </div>
+                <strong>PUBG squad tonight</strong>
+                <p>Looking for 2 more · Ready now</p>
               </div>
             </div>
-          </div>
-
-          <div className={styles.groupCard}>
-            <div className={styles.groupThumb}>🥾</div>
-            <div>
-              <span className={styles.tag}>Group Experience</span>
-              <strong>Saturday Sunrise Trek</strong>
-              <p>6/10 joined · ₹799 / person</p>
-              <div className={styles.progress}>
-                <span style={{ width: "60%" }} />
+            <div className={styles.plan}>
+              <div className={`${styles.badge} ${styles.badgeTravel}`}>🥾</div>
+              <div>
+                <strong>Saturday sunrise trek</strong>
+                <p>6/10 joined · Open to newcomers</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className={`${styles.float} ${styles.floatTrek}`}>
-        <span>🥾</span>
+      <div className={`${styles.float} ${styles.floatA}`}>
+        <span>✈️</span>
         <div>
-          <strong>Saturday Sunrise Trek</strong>
-          <p>6/10 joined · ₹799 / person</p>
+          <strong>Travel companions</strong>
+          <p>Goa trip · next weekend</p>
         </div>
       </div>
 
-      <div className={`${styles.float} ${styles.floatWorkout}`}>
+      <div className={`${styles.float} ${styles.floatB}`}>
         <span>🏋️</span>
         <div>
-          <strong>Workout</strong>
-          <p>2 people looking nearby</p>
+          <strong>Gym partner</strong>
+          <p>Morning strength · nearby</p>
         </div>
       </div>
 
-      <div className={`${styles.float} ${styles.floatCoffee}`}>
+      <div className={`${styles.float} ${styles.floatC}`}>
         <span>☕</span>
         <div>
-          <strong>Coffee & conversations</strong>
-          <p>Looking for someone this weekend</p>
+          <strong>Coffee & chat</strong>
+          <p>Someone free this afternoon</p>
         </div>
       </div>
     </div>

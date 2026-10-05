@@ -1,7 +1,7 @@
 .stage {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   margin-inline: auto;
   min-height: 360px;
 }
@@ -19,154 +19,96 @@
 }
 
 .phoneBar {
-  height: 44px;
+  height: 48px;
   padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--vemee-line);
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-weight: 750;
   letter-spacing: -0.6px;
 }
 
-.dot {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--vemee-line);
-  display: grid;
-  place-items: center;
-  font-size: 14px;
+.live {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  color: var(--vemee-green);
+  background: var(--vemee-green-soft);
+  border-radius: 999px;
+  padding: 4px 9px;
 }
 
 .phoneBody {
   padding: 14px 14px 18px;
-  background: var(--vemee-bg);
+  background:
+    linear-gradient(180deg, #f7faf8 0%, var(--vemee-bg) 100%);
 }
 
 .kicker {
   margin: 0;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 750;
   color: var(--vemee-green);
 }
 
 .panelTitle {
   margin: 4px 0 12px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 750;
   letter-spacing: -0.3px;
+  font-family: var(--font-display);
 }
 
-.personRow {
+.planList {
   display: grid;
   gap: 8px;
 }
 
-.person {
+.plan {
   display: flex;
   gap: 10px;
   align-items: center;
   background: var(--vemee-surface);
   border: 1px solid var(--vemee-line);
   border-radius: 15px;
-  padding: 10px;
+  padding: 11px;
   box-shadow: var(--shadow-soft);
 }
 
-.person strong {
+.plan strong {
   display: block;
   font-size: 13px;
   letter-spacing: -0.2px;
 }
 
-.person p {
+.plan p {
   margin: 2px 0 0;
   font-size: 11px;
   color: var(--vemee-muted);
 }
 
-.avatar {
+.badge {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #e5eee9;
   display: grid;
   place-items: center;
-  font-size: 22px;
+  font-size: 20px;
   flex: none;
 }
 
-.meta {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: 4px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.verified {
-  color: var(--vemee-green);
-}
-
-.groupCard {
-  margin-top: 10px;
-  display: flex;
-  gap: 10px;
-  background: var(--vemee-surface);
-  border: 1px solid var(--vemee-line);
-  border-radius: 17px;
-  padding: 12px;
-  box-shadow: var(--shadow-card);
-}
-
-.groupThumb {
-  width: 52px;
-  height: 52px;
-  border-radius: 13px;
+.badgeOutdoor {
   background: #e7f0eb;
-  display: grid;
-  place-items: center;
-  font-size: 24px;
-  flex: none;
 }
 
-.groupCard strong {
-  display: block;
-  margin-top: 4px;
-  font-size: 13px;
+.badgeGaming {
+  background: #e8eef5;
 }
 
-.groupCard p {
-  margin: 3px 0 0;
-  font-size: 11px;
-  color: var(--vemee-muted);
-}
-
-.tag {
-  display: inline-block;
-  background: var(--vemee-green-soft);
-  color: var(--vemee-green);
-  border-radius: 999px;
-  padding: 3px 7px;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.progress {
-  height: 5px;
-  background: #edf0ee;
-  border-radius: 99px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.progress span {
-  display: block;
-  height: 100%;
-  background: var(--vemee-green);
-  border-radius: 99px;
+.badgeTravel {
+  background: #f1ebe4;
 }
 
 .float {
@@ -207,45 +149,45 @@
 
 @media (min-width: 1024px) {
   .stage {
-    max-width: 520px;
+    max-width: 540px;
     min-height: 480px;
   }
 
   .phone {
     width: 340px;
-    margin-left: 28px;
+    margin-left: 36px;
   }
 
   .float {
     display: flex;
   }
 
-  .floatTrek {
-    top: 36px;
+  .floatA {
+    top: 28px;
     right: 0;
   }
 
-  .floatWorkout {
-    bottom: 110px;
+  .floatB {
+    bottom: 118px;
     left: 0;
   }
 
-  .floatCoffee {
+  .floatC {
     bottom: 24px;
-    right: 8px;
+    right: 12px;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
-  .floatTrek {
+  .floatA {
     animation: floatY 5.5s ease-in-out infinite;
   }
 
-  .floatWorkout {
+  .floatB {
     animation: floatY 6.2s ease-in-out infinite reverse;
   }
 
-  .floatCoffee {
+  .floatC {
     animation: floatY 7s ease-in-out infinite;
   }
 }

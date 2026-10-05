@@ -1,0 +1,58 @@
+.back {
+  color: var(--vemee-green);
+  font-weight: 800;
+}
+
+.thread {
+  margin-top: 22px;
+  display: grid;
+  gap: 10px;
+  max-width: 720px;
+}
+
+.emptyMsg {
+  margin: 0;
+  padding: 20px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  color: var(--vemee-muted);
+}
+
+.bubble {
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.system {
+  background: var(--vemee-bg);
+  opacity: 0.92;
+}
+
+.bubbleHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.bubbleHead strong {
+  font-size: 13px;
+}
+
+.bubbleHead time {
+  font-size: 11px;
+  color: var(--vemee-muted);
+  font-weight: 700;
+}
+
+.bubble p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

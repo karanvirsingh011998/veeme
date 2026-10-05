@@ -3,21 +3,31 @@
 }
 
 .panel {
-  background: var(--vemee-green-soft);
+  background:
+    radial-gradient(ellipse 80% 70% at 20% 0%, rgba(255, 255, 255, 0.55), transparent 55%),
+    var(--vemee-green-soft);
   border: 1px solid #d7e5dd;
   border-radius: var(--radius-xl);
   padding: 40px 24px;
   text-align: center;
 }
 
+.brand {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.8px;
+  color: var(--vemee-green);
+}
+
 .title {
-  margin: 0;
+  margin: 0 auto;
   font-size: clamp(28px, 4vw, 44px);
   line-height: 1.1;
-  letter-spacing: -1.2px;
-  font-weight: 900;
+  letter-spacing: -1.4px;
+  font-weight: 750;
   max-width: 16ch;
-  margin-inline: auto;
 }
 
 .copy {
@@ -26,6 +36,14 @@
   color: var(--vemee-muted);
   font-size: clamp(15px, 1.6vw, 17px);
   line-height: 1.45;
+}
+
+.tagline {
+  margin: 12px auto 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--vemee-ink);
 }
 
 .actions {

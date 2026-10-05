@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --vemee-bg: #f7f9f7;
+  --vemee-bg: #f4f7f5;
   --vemee-surface: #ffffff;
-  --vemee-ink: #17221e;
-  --vemee-muted: #78827e;
-  --vemee-line: #e5eae7;
-  --vemee-green: #23604c;
-  --vemee-green-2: #2d6d58;
-  --vemee-green-soft: #eaf3ee;
-  --vemee-border-soft: #d2dfd8;
+  --vemee-ink: #14201c;
+  --vemee-muted: #6b766f;
+  --vemee-line: #e2e9e4;
+  --vemee-green: #1f5a47;
+  --vemee-green-2: #2a6d56;
+  --vemee-green-soft: #e8f2ed;
+  --vemee-border-soft: #cfdcd4;
+  --vemee-accent: #c45c26;
+  --vemee-mist: #dce8e1;
 
   --radius-sm: 10px;
   --radius-md: 14px;
@@ -38,8 +40,8 @@
   --header-h: 64px;
   --header-h-mobile: 56px;
 
-  --font-sans: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-outfit), "Outfit", sans-serif;
+  --font-sans: var(--font-dm-sans), "DM Sans", sans-serif;
 }
 
 @theme inline {
@@ -78,6 +80,14 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+.section-title,
+.btn {
+  font-family: var(--font-display);
 }
 
 body {
@@ -229,8 +239,13 @@ img {
   margin: 0;
   font-size: clamp(28px, 4vw, 44px);
   line-height: 1.08;
-  letter-spacing: -1.2px;
-  font-weight: 900;
+  letter-spacing: -1.4px;
+  font-weight: 750;
+}
+
+:focus-visible {
+  outline: 2px solid var(--vemee-green);
+  outline-offset: 3px;
 }
 
 .section-copy {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { NAV_LINKS } from "@/lib/constants";
+import { HEADER_NAV_LINKS } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 import styles from "./SiteHeader.module.css";
 
@@ -36,7 +36,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Primary">
-          {NAV_LINKS.map((link) => (
+          {HEADER_NAV_LINKS.map((link) => (
             <a key={link.href} href={link.href} className={styles.navLink}>
               {link.label}
             </a>
@@ -72,7 +72,7 @@ export function SiteHeader() {
         aria-hidden={!open}
       >
         <nav className={styles.mobileNav} aria-label="Mobile">
-          {NAV_LINKS.map((link) => (
+          {HEADER_NAV_LINKS.map((link) => (
             <a
               key={link.href}
               href={link.href}

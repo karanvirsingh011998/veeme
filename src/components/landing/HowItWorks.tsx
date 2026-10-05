@@ -2,17 +2,22 @@ import { HOW_IT_WORKS } from "@/lib/constants";
 import styles from "./HowItWorks.module.css";
 
 /**
- * How Vemee works — vertical cards on mobile, connected four-step row on desktop.
+ * How Vemee works — four-step plan-to-people journey.
  */
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className={`section ${styles.section}`}>
+    <section
+      id="how-it-works"
+      className={`section ${styles.section}`}
+      aria-labelledby="how-heading"
+    >
       <div className="container">
-        <p className="section-eyebrow">How Vemee works</p>
-        <h2 className="section-title">From idea to experience.</h2>
+        <p className="section-eyebrow">How it works</p>
+        <h2 id="how-heading" className="section-title">
+          From plan to people — in four steps.
+        </h2>
         <p className="section-copy">
-          A simple loop: discover, connect, book, and show up with clearer
-          context.
+          A simple loop built around shared activities, not endless profiles.
         </p>
 
         <ol className={styles.steps}>
@@ -21,9 +26,6 @@ export function HowItWorks() {
               <div className={styles.card}>
                 <div className={styles.top}>
                   <span className={styles.number}>{step.step}</span>
-                  <span className={styles.icon} aria-hidden="true">
-                    {step.icon}
-                  </span>
                 </div>
                 <h3 className={styles.title}>{step.title}</h3>
                 <p className={styles.copy}>{step.description}</p>

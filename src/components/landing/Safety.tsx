@@ -1,39 +1,34 @@
-import { TRUST_ITEMS } from "@/lib/constants";
+import { TRUST_FEATURES } from "@/lib/constants";
 import styles from "./Safety.module.css";
 
 /**
- * Trust & safety — soft sage band; stacked on mobile, two-column on desktop.
+ * Trust & safety — reassuring without feeling overly serious.
  */
 export function Safety() {
   return (
-    <section id="safety" className={`section ${styles.section}`}>
-      <div className={`container ${styles.grid}`}>
-        <div className={styles.copy}>
-          <p className="section-eyebrow">Safety / Trust</p>
-          <h2 className={`section-title ${styles.titleMobile}`}>
-            Built for real-world connections.
-          </h2>
-          <h2 className={`section-title ${styles.titleDesktop}`}>
-            Real people.
-            <br />
-            Clear signals.
-            <br />
-            Better plans.
-          </h2>
-          <p className="section-copy">
-            Verification increases trust — it doesn&apos;t promise perfect
-            safety. Clear badges, reporting tools and check-ins help you decide
-            with more context.
-          </p>
-        </div>
+    <section
+      id="safety"
+      className={`section ${styles.section}`}
+      aria-labelledby="trust-heading"
+    >
+      <div className="container">
+        <p className="section-eyebrow">Trust & safety</p>
+        <h2 id="trust-heading" className="section-title">
+          Built around trust
+        </h2>
+        <p className="section-copy">
+          Clear signals and community-first controls so connecting around plans
+          feels more comfortable.
+        </p>
 
-        <ul className={styles.list}>
-          {TRUST_ITEMS.map((item) => (
-            <li key={item} className={styles.item}>
-              <span className={styles.check} aria-hidden="true">
-                ✓
+        <ul className={styles.grid}>
+          {TRUST_FEATURES.map((item) => (
+            <li key={item.title} className={styles.card}>
+              <span className={styles.icon} aria-hidden="true">
+                {item.icon}
               </span>
-              <span>{item}</span>
+              <h3 className={styles.title}>{item.title}</h3>
+              <p className={styles.copy}>{item.description}</p>
             </li>
           ))}
         </ul>

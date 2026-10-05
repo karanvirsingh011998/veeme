@@ -1,0 +1,132 @@
+.page {
+  max-width: 1100px;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--vemee-green);
+}
+
+.title {
+  margin: 8px 0 0;
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -1px;
+  font-weight: 900;
+}
+
+.copy,
+.hint {
+  margin: 10px 0 0;
+  color: var(--vemee-muted);
+  font-size: 15px;
+}
+
+.hint {
+  font-size: 13px;
+}
+
+.stats {
+  margin-top: 22px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 900px) {
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.stat {
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.statLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--vemee-muted);
+}
+
+.statValue {
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.6px;
+}
+
+.empty {
+  margin-top: 24px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.tableWrap {
+  margin-top: 20px;
+  overflow-x: auto;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-lg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--vemee-line);
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.table th {
+  font-size: 12px;
+  color: var(--vemee-muted);
+  font-weight: 800;
+  background: var(--vemee-bg);
+}
+
+.payer {
+  display: grid;
+  gap: 2px;
+}
+
+.payer strong {
+  font-size: 14px;
+}
+
+.payer span {
+  font-size: 12px;
+  color: var(--vemee-muted);
+}
+
+.badge {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--vemee-green-soft);
+  color: var(--vemee-green);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--vemee-muted);
+}

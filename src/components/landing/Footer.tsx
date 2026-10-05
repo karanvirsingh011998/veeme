@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { NAV_LINKS } from "@/lib/constants";
+import { FOOTER_LEGAL, NAV_LINKS } from "@/lib/constants";
 import styles from "./Footer.module.css";
 
 /**
- * Public marketing footer with light product links.
+ * Public marketing footer with product nav and legal links.
  */
 export function Footer() {
   return (
@@ -13,7 +13,7 @@ export function Footer() {
           <Link href="/" className={styles.logo}>
             Vemee
           </Link>
-          <p>Find your people. Make better plans.</p>
+          <p>Find your people. Do more together.</p>
         </div>
 
         <nav className={styles.links} aria-label="Footer">
@@ -22,12 +22,18 @@ export function Footer() {
               {link.label}
             </a>
           ))}
-          <Link href="/login">Log in</Link>
-          <Link href="/signup">Get started</Link>
+        </nav>
+
+        <nav className={styles.legalNav} aria-label="Legal">
+          {FOOTER_LEGAL.map((link) => (
+            <a key={link.href} href={link.href}>
+              {link.label}
+            </a>
+          ))}
         </nav>
       </div>
       <div className={`container ${styles.legal}`}>
-        <p>© {new Date().getFullYear()} Vemee. Built for real-world connections.</p>
+        <p>© {new Date().getFullYear()} Vemee. Plans, not profiles.</p>
       </div>
     </footer>
   );

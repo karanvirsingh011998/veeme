@@ -7,7 +7,9 @@ import styles from "./AdminShell.module.css";
 
 const NAV = [
   { href: "/admin", label: "Overview", exact: true as const },
-  { href: "/admin/users", label: "Users", exact: false as const },
+  { href: "/admin/profiles", label: "Profiles", exact: false as const },
+  { href: "/admin/revenue", label: "Revenue", exact: false as const },
+  { href: "/admin/chats", label: "Chats", exact: false as const },
 ] as const;
 
 type AdminShellProps = {
@@ -16,7 +18,7 @@ type AdminShellProps = {
 };
 
 /**
- * Admin chrome with sidebar + logout. Role is already verified server-side.
+ * Admin chrome with sidebar tabs + mobile tab strip. Role verified server-side.
  */
 export function AdminShell({ email, children }: AdminShellProps) {
   const pathname = usePathname();
@@ -33,6 +35,17 @@ export function AdminShell({ email, children }: AdminShellProps) {
     }
   }
 
+  function isActive(href: string, exact: boolean) {
+    if (exact) return pathname === href;
+    if (href === "/admin/profiles") {
+      return (
+        pathname.startsWith("/admin/profiles") ||
+        pathname.startsWith("/admin/users")
+      );
+    }
+    return pathname.startsWith(href);
+  }
+
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
@@ -46,14 +59,13 @@ export function AdminShell({ email, children }: AdminShellProps) {
 
         <nav className={styles.nav} aria-label="Admin">
           {NAV.map((item) => {
-            const active = item.exact
-              ? pathname === item.href
-              : pathname.startsWith(item.href);
+            const active = isActive(item.href, item.exact);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`${styles.link} ${active ? styles.active : ""}`}
+                aria-current={active ? "page" : undefined}
               >
                 {item.label}
               </Link>
@@ -88,6 +100,23 @@ export function AdminShell({ email, children }: AdminShellProps) {
             Log out
           </button>
         </header>
+
+        <nav className={styles.mobileTabs} aria-label="Admin sections">
+          {NAV.map((item) => {
+            const active = isActive(item.href, item.exact);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${styles.mobileTab} ${active ? styles.mobileTabActive : ""}`}
+                aria-current={active ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
         <div className={styles.content}>{children}</div>
       </div>
     </div>

@@ -2,17 +2,22 @@ import { CATEGORIES } from "@/lib/constants";
 import styles from "./Categories.module.css";
 
 /**
- * Category discovery grid — 2 columns on mobile, wider premium grid on desktop.
+ * Activity discovery — interactive category cards linking into signup.
  */
 export function Categories() {
   return (
-    <section id="discover" className={`section ${styles.section}`}>
-      <div className="container">
-        <p className="section-eyebrow">Discover</p>
-        <h2 className="section-title">What are you looking for?</h2>
+    <section
+      id="discover"
+      className={`section ${styles.section}`}
+      aria-labelledby="activities-heading"
+    >
+      <div id="activities" className="container">
+        <p className="section-eyebrow">Activity discovery</p>
+        <h2 id="activities-heading" className="section-title">
+          What are you looking to do?
+        </h2>
         <p className="section-copy">
-          Start with a category — then find people, experiences and communities
-          that fit the plan.
+          Choose an activity. Find people who want to do the same.
         </p>
 
         <div className={styles.grid}>
@@ -22,6 +27,7 @@ export function Categories() {
                 {cat.icon}
               </span>
               <span className={styles.label}>{cat.label}</span>
+              <span className={styles.description}>{cat.description}</span>
             </a>
           ))}
         </div>
