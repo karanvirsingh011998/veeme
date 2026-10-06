@@ -14,13 +14,10 @@
   padding-bottom: calc(86px + env(safe-area-inset-bottom));
 }
 
-.loading {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  background: var(--vemee-bg);
-  color: var(--vemee-muted);
-  font-weight: 700;
+.scrollFlush {
+  padding-bottom: 0;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 @media (min-width: 1024px) {

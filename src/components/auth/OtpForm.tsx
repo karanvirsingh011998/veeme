@@ -43,6 +43,7 @@ type AuthProfilePayload = {
 
 /**
  * OTP verification — signup writes to DB; login checks DB by phone.
+ * First box autofocuses; full code auto-submits.
  */
 export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
   const router = useRouter();
@@ -52,6 +53,7 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [ready, setReady] = useState(false);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
+  const submittingRef = useRef(false);
 
   const displayPhone = buildFullPhoneNumber(countryCode, phoneNumber);
 
@@ -69,46 +71,23 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
     };
   }, []);
 
-  function updateDigit(index: number, value: string) {
-    const next = [...digits];
-    next[index] = value.slice(-1);
-    setDigits(next);
-    setError(null);
-    if (value && index < otpLength - 1) {
-      inputsRef.current[index + 1]?.focus();
-    }
-  }
+  useEffect(() => {
+    if (!ready) return;
+    // Autofocus first digit so users can type immediately.
+    const timer = window.setTimeout(() => {
+      inputsRef.current[0]?.focus();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [ready, otpLength]);
 
-  function onKeyDown(index: number, event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Backspace" && !digits[index] && index > 0) {
-      inputsRef.current[index - 1]?.focus();
-    }
-  }
-
-  function onPaste(event: ClipboardEvent<HTMLInputElement>) {
-    event.preventDefault();
-    const pasted = event.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, otpLength)
-      .split("");
-    if (!pasted.length) return;
-    const next = Array.from({ length: otpLength }, () => "");
-    pasted.forEach((digit, i) => {
-      next[i] = digit;
-    });
-    setDigits(next);
-    inputsRef.current[Math.min(pasted.length, otpLength - 1)]?.focus();
-  }
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const otp = digits.join("");
+  async function verifyOtp(otp: string) {
+    if (submittingRef.current) return;
     if (otp.length < otpLength) {
       setError(`Enter the ${otpLength}-digit code.`);
       return;
     }
 
+    submittingRef.current = true;
     setSubmitting(true);
     setError(null);
 
@@ -117,6 +96,7 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
         const draft = readSignupDraft();
         if (!draft) {
           setError("Signup details expired. Please start again.");
+          submittingRef.current = false;
           setSubmitting(false);
           return;
         }
@@ -130,6 +110,7 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
 
         if (!response.ok || !data.ok || !data.profile) {
           setError(data.error || "Could not create your account.");
+          submittingRef.current = false;
           setSubmitting(false);
           return;
         }
@@ -155,7 +136,6 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
         };
 
         if (!response.ok || !data.ok || !data.profile) {
-          // Account checks belong on /login — send the user back there.
           if (data.code === "NOT_FOUND" || response.status === 404) {
             router.replace(
               `/login?error=${encodeURIComponent(
@@ -166,6 +146,7 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
             return;
           }
           setError(data.error || "Login failed.");
+          submittingRef.current = false;
           setSubmitting(false);
           return;
         }
@@ -184,8 +165,64 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
       router.push("/dashboard");
     } catch {
       setError("Something went wrong. Please try again.");
+      submittingRef.current = false;
       setSubmitting(false);
     }
+  }
+
+  function applyDigits(next: string[], focusIndex?: number) {
+    setDigits(next);
+    setError(null);
+    if (typeof focusIndex === "number") {
+      inputsRef.current[focusIndex]?.focus();
+    }
+    const otp = next.join("");
+    if (otp.length === otpLength && next.every((d) => d !== "")) {
+      void verifyOtp(otp);
+    }
+  }
+
+  function updateDigit(index: number, value: string) {
+    const cleaned = value.replace(/\D/g, "");
+    // Support SMS autofill dumping multiple digits into one box.
+    if (cleaned.length > 1) {
+      const chars = cleaned.slice(0, otpLength).split("");
+      const next = Array.from({ length: otpLength }, (_, i) => chars[i] || "");
+      applyDigits(next, Math.min(chars.length, otpLength) - 1);
+      return;
+    }
+
+    const next = [...digits];
+    next[index] = cleaned.slice(-1);
+    const focusIndex =
+      cleaned && index < otpLength - 1 ? index + 1 : undefined;
+    applyDigits(next, focusIndex);
+  }
+
+  function onKeyDown(index: number, event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Backspace" && !digits[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+    }
+  }
+
+  function onPaste(event: ClipboardEvent<HTMLInputElement>) {
+    event.preventDefault();
+    const pasted = event.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, otpLength)
+      .split("");
+    if (!pasted.length) return;
+    const next = Array.from({ length: otpLength }, () => "");
+    pasted.forEach((digit, i) => {
+      next[i] = digit;
+    });
+    applyDigits(next, Math.min(pasted.length, otpLength) - 1);
+  }
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void verifyOtp(digits.join(""));
   }
 
   if (!ready) {
@@ -211,13 +248,16 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
             }}
             inputMode="numeric"
             autoComplete={index === 0 ? "one-time-code" : "off"}
-            maxLength={1}
+            autoFocus={index === 0}
+            maxLength={index === 0 ? otpLength : 1}
             aria-label={`Digit ${index + 1} of ${otpLength}`}
             value={digit}
+            disabled={submitting}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              updateDigit(index, e.target.value.replace(/\D/g, ""))
+              updateDigit(index, e.target.value)
             }
             onKeyDown={(e) => onKeyDown(index, e)}
+            onFocus={(e) => e.currentTarget.select()}
           />
         ))}
       </div>
@@ -232,7 +272,7 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
         type="submit"
         variant="primary"
         className={styles.submit}
-        disabled={submitting}
+        disabled={submitting || digits.join("").length < otpLength}
       >
         {submitting ? "Verifying…" : "Verify & continue"}
       </Button>
@@ -240,9 +280,12 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
         Didn&apos;t get it?{" "}
         <button
           type="button"
+          disabled={submitting}
           onClick={() => {
+            submittingRef.current = false;
             setDigits(Array.from({ length: otpLength }, () => ""));
             setError(null);
+            inputsRef.current[0]?.focus();
           }}
         >
           Resend code

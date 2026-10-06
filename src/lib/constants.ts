@@ -63,7 +63,19 @@ export const HOW_IT_WORKS = [
 ] as const;
 
 export const TRUST_FEATURES = [
-  { title: "Verified people" },
-  { title: "Community ratings" },
-  { title: "Safety controls" },
+  {
+    id: "verified",
+    title: "Verified people",
+    description: "Phone-checked members so you’re meeting real neighbors.",
+  },
+  {
+    id: "ratings",
+    title: "Community ratings",
+    description: "See how others experienced a plan before you join.",
+  },
+  {
+    id: "safety",
+    title: "Safety controls",
+    description: "Report, block, and stay in control of who you meet.",
+  },
 ] as const;

@@ -8,9 +8,9 @@
   background: rgba(255, 255, 255, 0.98);
   border-top: 1px solid var(--vemee-line);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   z-index: 40;
-  box-shadow: 0 -4px 18px rgba(24, 40, 33, 0.045);
+  box-shadow: 0 -4px 18px rgba(45, 33, 28, 0.045);
 }
 
 .nav {
@@ -35,6 +35,7 @@
   display: grid;
   place-items: center;
   position: relative;
+  overflow: visible;
 }
 
 .nav svg {
@@ -46,23 +47,41 @@
 }
 
 .active {
-  color: var(--vemee-green);
+  color: var(--vemee-peach);
   font-weight: 800;
 }
 
 .active .navIcon {
-  background: var(--vemee-green-soft);
+  background: var(--vemee-peach-soft);
+}
+
+.create .navIcon {
+  background: var(--vemee-peach);
+  color: #fff;
+}
+
+.create {
+  color: var(--vemee-peach-2);
 }
 
 .badge {
   position: absolute;
-  top: 1px;
-  right: 1px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  top: -6px;
+  right: -8px;
+  z-index: 2;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
   background: #d65b4a;
-  border: 1.5px solid #fff;
+  border: 2px solid #fff;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(45, 33, 28, 0.2);
 }
 
 @media (min-width: 1024px) {

@@ -117,9 +117,14 @@ export async function getProfile(
   return readLocalStore()[userId] ?? null;
 }
 
+export type ProfileExtras = {
+  bio?: string | null;
+  city?: string | null;
+};
+
 export async function updateProfile(
   userId: string,
-  data: Partial<ProfileInput>,
+  data: Partial<ProfileInput> & ProfileExtras,
 ): Promise<{ ok: true; profile: ProfileRow } | { ok: false; error: string }> {
   const patch: ProfileUpdate = {
     first_name: data.firstName,
@@ -128,6 +133,8 @@ export async function updateProfile(
     gender: data.gender,
     country_code: data.countryCode,
     phone_number: data.phoneNumber,
+    bio: data.bio,
+    city: data.city,
     updated_at: new Date().toISOString(),
   };
 
@@ -163,6 +170,8 @@ export async function updateProfile(
     country_code: patch.country_code ?? current.country_code,
     phone_number: patch.phone_number ?? current.phone_number,
     display_name: patch.display_name ?? current.display_name,
+    bio: patch.bio !== undefined ? patch.bio : current.bio,
+    city: patch.city !== undefined ? patch.city : current.city,
     updated_at: patch.updated_at ?? current.updated_at,
   };
   store[userId] = next;

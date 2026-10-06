@@ -1,92 +1,267 @@
 "use client";
 
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/components/dashboard/AuthProvider";
-import { buildFullPhoneNumber } from "@/lib/phone";
-import styles from "./app-ui.module.css";
-
-const MENU = [
-  "Edit Profile",
-  "Verification",
-  "Bookings",
-  "Wallet & Payments",
-  "Settings",
-  "Help & Support",
-] as const;
+import { listUserPlansAsync } from "@/lib/plans/service";
+import { listAcceptedForAsync } from "@/lib/connections/service";
+import {
+  MANUAL_CITIES,
+  readApproxLocation,
+  saveApproxLocation,
+} from "@/lib/location/geo";
+import { updateProfile } from "@/lib/profile/service";
+import { ScreenLoading } from "@/components/dashboard/ui/ScreenLoading";
+import styles from "./ProfileScreen.module.css";
 
 /**
- * Profile — uses authenticated signup data; logout via auth layer.
+ * Own profile — polished activity-focused layout.
  */
 export function ProfileScreen() {
-  const { user, profile, logout } = useAuth();
-
+  const { user, profile, logout, refresh } = useAuth();
+  const userId = profile?.id || user?.id || "";
   const firstName = profile?.first_name || user?.firstName || "";
   const lastName = profile?.last_name || user?.lastName || "";
   const displayName =
     [firstName, lastName].filter(Boolean).join(" ") || "Vemee member";
-  const email = profile?.email || user?.email;
-  const gender = profile?.gender || user?.gender;
-  const phone =
-    user?.countryCode && user?.phoneNumber
-      ? buildFullPhoneNumber(user.countryCode, user.phoneNumber)
-      : null;
+  const initial = (displayName[0] || "V").toUpperCase();
+
+  const [createdCount, setCreatedCount] = useState(0);
+  const [joinedCount, setJoinedCount] = useState(0);
+  const [connectionCount, setConnectionCount] = useState(0);
+  const [city, setCity] = useState("");
+  const [bio, setBio] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    setBio(profile?.bio || "");
+    const loc = readApproxLocation();
+    setCity(profile?.city || loc?.city || "");
+  }, [profile?.bio, profile?.city]);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    void (async () => {
+      setLoadingStats(true);
+      try {
+        const [{ created, joined }, accepted] = await Promise.all([
+          listUserPlansAsync(userId),
+          listAcceptedForAsync(userId),
+        ]);
+        if (cancelled) return;
+        setCreatedCount(created.length);
+        setJoinedCount(joined.length);
+        setConnectionCount(accepted.length);
+      } finally {
+        if (!cancelled) setLoadingStats(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  async function saveBasics() {
+    if (!userId) return;
+    setSaving(true);
+    setSaved(false);
+    await updateProfile(userId, { bio, city });
+    const match = MANUAL_CITIES.find((c) => c.city === city);
+    if (match) {
+      saveApproxLocation({
+        lat: match.lat,
+        lng: match.lng,
+        city: match.city,
+        area: match.area,
+        source: "manual",
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    await refresh();
+    setSaving(false);
+    setSaved(true);
+    setEditing(false);
+  }
+
+  const cityLabel =
+    MANUAL_CITIES.find((c) => c.city === city)?.area && city
+      ? `${city}`
+      : city;
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.logo}>Profile</div>
-        <button type="button" className={styles.iconBtn} aria-label="Settings">
-          ⚙
+        <h1 className={styles.pageTitle}>Profile</h1>
+        <button
+          type="button"
+          className={styles.editToggle}
+          onClick={() => {
+            setEditing((v) => !v);
+            setSaved(false);
+          }}
+        >
+          {editing ? "Done" : "Edit"}
         </button>
       </header>
 
-      <div className={`${styles.content} ${styles.profile}`}>
-        <div className={styles.profileImg} aria-hidden="true">
-          🧑
+      <section className={styles.hero}>
+        <div className={styles.avatar} aria-hidden="true">
+          {initial}
         </div>
-        <h2>{displayName}</h2>
-        {phone ? <p>{phone}</p> : null}
-        {email ? <p>{email}</p> : null}
-        {gender ? <p>{gender}</p> : null}
-        <span className={styles.tag}>✓ Phone verified</span>
-        <p>
-          Exploring new places, good food and meaningful conversations.
+        <h2 className={styles.name}>{displayName}</h2>
+        <p className={styles.location}>
+          {cityLabel ? (
+            <>
+              <span aria-hidden="true">📍</span> {cityLabel}
+            </>
+          ) : (
+            "Add your city to discover nearby plans"
+          )}
         </p>
+        {profile?.phone_verified_at ? (
+          <span className={styles.badge}>Verified member</span>
+        ) : (
+          <span className={styles.badgeMuted}>Phone account</span>
+        )}
+        {bio && !editing ? (
+          <p className={styles.bioPreview}>{bio}</p>
+        ) : null}
+      </section>
 
+      {loadingStats ? (
+        <ScreenLoading message="Loading your activity…" inline />
+      ) : (
         <div className={styles.stats}>
           <div className={styles.stat}>
-            <b>12</b>
+            <strong>{connectionCount}</strong>
             <span>Connections</span>
           </div>
           <div className={styles.stat}>
-            <b>5</b>
-            <span>Communities</span>
+            <strong>{createdCount}</strong>
+            <span>Created</span>
           </div>
           <div className={styles.stat}>
-            <b>8</b>
-            <span>Experiences</span>
+            <strong>{joinedCount}</strong>
+            <span>Joined</span>
           </div>
         </div>
+      )}
 
-        {MENU.map((item) => (
-          <button key={item} type="button" className={styles.setting}>
-            <b>{item}</b>
-            <span className={styles.arrow}>›</span>
+      {editing ? (
+        <section className={styles.card}>
+          <h3 className={styles.cardTitle}>About you</h3>
+          <p className={styles.cardHint}>
+            Keep it about plans and activities — not dating.
+          </p>
+
+          <label className={styles.field}>
+            <span>Bio</span>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="What kinds of plans are you into?"
+              rows={3}
+            />
+          </label>
+
+          <label className={styles.field}>
+            <span>City / area</span>
+            <select
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            >
+              <option value="">Select city</option>
+              {MANUAL_CITIES.map((c) => (
+                <option key={c.city} value={c.city}>
+                  {c.city} — {c.area}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={() => void saveBasics()}
+            disabled={saving}
+          >
+            {saving ? "Saving…" : "Save changes"}
           </button>
-        ))}
+          {saved ? <p className={styles.saved}>Profile updated</p> : null}
+        </section>
+      ) : null}
 
-        <button type="button" className={styles.primary} style={{ marginTop: 12 }}>
-          ＋ Create a Group Experience
-        </button>
+      <section className={styles.card}>
+        <h3 className={styles.cardTitle}>Quick actions</h3>
+        <nav className={styles.menu} aria-label="Profile actions">
+          <Link href="/dashboard/plans/new" className={styles.menuItem}>
+            <span className={styles.menuIcon} aria-hidden="true">
+              ＋
+            </span>
+            <span className={styles.menuText}>
+              <strong>Create a Plan</strong>
+              <small>Post what you want to do</small>
+            </span>
+            <span className={styles.chevron} aria-hidden="true">
+              ›
+            </span>
+          </Link>
+          <Link href="/dashboard/explore" className={styles.menuItem}>
+            <span className={styles.menuIcon} aria-hidden="true">
+              ⌕
+            </span>
+            <span className={styles.menuText}>
+              <strong>Explore Plans</strong>
+              <small>Find activities near you</small>
+            </span>
+            <span className={styles.chevron} aria-hidden="true">
+              ›
+            </span>
+          </Link>
+          <Link href="/dashboard/people" className={styles.menuItem}>
+            <span className={styles.menuIcon} aria-hidden="true">
+              ◎
+            </span>
+            <span className={styles.menuText}>
+              <strong>People</strong>
+              <small>Connect around shared plans</small>
+            </span>
+            <span className={styles.chevron} aria-hidden="true">
+              ›
+            </span>
+          </Link>
+          {!editing ? (
+            <button
+              type="button"
+              className={styles.menuItem}
+              onClick={() => setEditing(true)}
+            >
+              <span className={styles.menuIcon} aria-hidden="true">
+                ✎
+              </span>
+              <span className={styles.menuText}>
+                <strong>Edit profile</strong>
+                <small>Bio, city and preferences</small>
+              </span>
+              <span className={styles.chevron} aria-hidden="true">
+                ›
+              </span>
+            </button>
+          ) : null}
+        </nav>
+      </section>
 
-        <button
-          type="button"
-          className={styles.setting}
-          onClick={() => void logout()}
-          style={{ marginTop: 10, justifyContent: "center", color: "#b44" }}
-        >
-          Logout
-        </button>
-      </div>
+      <button
+        type="button"
+        className={styles.logout}
+        onClick={() => void logout()}
+      >
+        Log out
+      </button>
     </div>
   );
 }

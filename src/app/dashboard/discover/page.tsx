@@ -1,9 +1,6 @@
-import { DiscoverScreen } from "@/components/dashboard/DiscoverScreen";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Discover — Vemee",
-};
-
-export default function DiscoverPage() {
-  return <DiscoverScreen />;
+/** Legacy Discover route → Explore Plans. */
+export default function DiscoverRedirectPage() {
+  redirect("/dashboard/explore");
 }

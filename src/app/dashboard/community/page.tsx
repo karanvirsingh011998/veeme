@@ -1,9 +1,6 @@
-import { CommunityScreen } from "@/components/dashboard/CommunityScreen";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Community — Vemee",
-};
-
-export default function CommunityPage() {
-  return <CommunityScreen />;
+/** Community tab replaced by People in the plans-first nav. */
+export default function CommunityRedirectPage() {
+  redirect("/dashboard/people");
 }

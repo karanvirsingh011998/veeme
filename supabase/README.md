@@ -6,7 +6,17 @@
 |------|---------|
 | `migrations/20260326120000_initial_schema.sql` | Enums, tables, triggers, seed categories |
 | `migrations/20260326120100_rls_policies.sql` | Row Level Security policies |
+| `migrations/20260326160000_activity_plans.sql` | Plans, participants, connections, approx location |
 | `QUERIES.sql` | Copy-paste operational / discover queries |
+
+## Plans + chat data
+
+After running `20260326160000_activity_plans.sql` in the SQL Editor **and** setting `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` / Vercel:
+
+- **Create / Explore plans** → `activity_plans` + `plan_participants` via `/api/plans`
+- **1:1 chat** → existing `conversations` / `messages` via `/api/chat/*`
+
+Without the service role key (or without Supabase URL), the app falls back to browser local storage.
 
 ## Auth modes
 

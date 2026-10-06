@@ -17,9 +17,9 @@ export function Hero() {
             Plans are happening near you today
           </p>
           <h1 id="hero-heading" className={styles.title}>
-            Find your people.
+            Just people with common
             <br />
-            Do more together.
+            plans and interests.
           </h1>
           <p className={styles.subtitle}>
             Someone&apos;s already holding a spot. See what&apos;s happening

@@ -3,26 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/dashboard/AuthProvider";
+import { useChatUnread } from "@/components/dashboard/chat/ChatUnreadProvider";
 import styles from "./DesktopSidebar.module.css";
 
 const LINKS = [
   { href: "/dashboard", label: "Home", exact: true },
-  { href: "/dashboard/discover", label: "Discover" },
-  { href: "/dashboard/community", label: "Community" },
+  { href: "/dashboard/explore", label: "Explore" },
+  { href: "/dashboard/plans/new", label: "Create Plan" },
+  { href: "/dashboard/people", label: "People" },
   { href: "/dashboard/chat", label: "Chat" },
   { href: "/dashboard/profile", label: "Profile" },
 ];
 
 /**
- * Desktop sidebar navigation — intentional desktop hierarchy, not a stretched mobile nav.
+ * Desktop sidebar — plans-first navigation.
  */
 export function DesktopSidebar() {
   const pathname = usePathname();
   const { user, profile } = useAuth();
-  const name =
-    profile?.first_name ||
-    user?.firstName ||
-    "Member";
+  const { unreadChats } = useChatUnread();
+  const name = profile?.first_name || user?.firstName || "Member";
 
   return (
     <aside className={styles.sidebar}>
@@ -35,13 +35,23 @@ export function DesktopSidebar() {
           const active = link.exact
             ? pathname === link.href
             : pathname.startsWith(link.href);
+          const showUnread =
+            link.href === "/dashboard/chat" && unreadChats > 0;
           return (
             <Link
               key={link.href}
               href={link.href}
               className={`${styles.link} ${active ? styles.active : ""}`}
             >
-              {link.label}
+              <span>{link.label}</span>
+              {showUnread ? (
+                <span
+                  className={styles.unreadDot}
+                  aria-label={`${unreadChats} unread chats`}
+                >
+                  {unreadChats > 9 ? "9+" : unreadChats}
+                </span>
+              ) : null}
             </Link>
           );
         })}
