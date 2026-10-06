@@ -79,6 +79,37 @@
   background: #fff;
 }
 
+.legalField {
+  display: grid;
+  gap: 6px;
+}
+
+.legalLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.45;
+  color: var(--vemee-muted);
+  cursor: pointer;
+}
+
+.legalLabel input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--vemee-peach-2);
+}
+
+.legalLabel a {
+  color: var(--vemee-peach-2);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .error,
 .formError {
   margin: 0;

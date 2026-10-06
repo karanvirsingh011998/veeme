@@ -1,0 +1,114 @@
+.page {
+  min-height: 100dvh;
+  background:
+    radial-gradient(
+      80% 50% at 50% -10%,
+      color-mix(in srgb, var(--vemee-peach) 14%, transparent),
+      transparent 60%
+    ),
+    var(--vemee-bg);
+  color: var(--vemee-ink);
+}
+
+.header {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--vemee-ink);
+  text-decoration: none;
+}
+
+.main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+}
+
+.article {
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-xl);
+  padding: 28px 22px 32px;
+  box-shadow: var(--shadow-soft);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vemee-peach-2);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.updated {
+  margin: 10px 0 0;
+  color: var(--vemee-muted);
+  font-size: 14px;
+}
+
+.body {
+  margin-top: 24px;
+  display: grid;
+  gap: 18px;
+  color: var(--vemee-ink);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.body h2 {
+  margin: 8px 0 0;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.body p,
+.body ul {
+  margin: 0;
+  color: var(--vemee-muted);
+}
+
+.body ul {
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 6px;
+}
+
+.body a {
+  color: var(--vemee-peach-2);
+  font-weight: 650;
+}
+
+.back {
+  margin: 28px 0 0;
+  font-size: 14px;
+}
+
+.back a {
+  color: var(--vemee-peach-2);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .article {
+    padding: 36px 40px 40px;
+  }
+}

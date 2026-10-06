@@ -8,6 +8,9 @@ export type SignupDraft = {
   gender: GenderOption;
   countryCode: string;
   phoneNumber: string;
+  /** ISO timestamps set when the user accepts Terms + Privacy at signup. */
+  termsAcceptedAt: string;
+  privacyAcceptedAt: string;
 };
 
 export function saveSignupDraft(draft: SignupDraft): void {

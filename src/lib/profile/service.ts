@@ -30,6 +30,8 @@ function toRow(input: ProfileInput): ProfileRow {
     avatar_url: null,
     account_status: "active",
     is_admin: false,
+    terms_accepted_at: null,
+    privacy_accepted_at: null,
     created_at: now,
     updated_at: now,
   };

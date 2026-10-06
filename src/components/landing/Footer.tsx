@@ -14,6 +14,10 @@ export function Footer() {
           </span>
           Vemee
         </Link>
+        <nav className={styles.links} aria-label="Legal">
+          <Link href="/terms">Terms</Link>
+          <Link href="/privacy">Privacy</Link>
+        </nav>
         <p className={styles.copy}>
           © {new Date().getFullYear()} Vemee · Made for getting out more.
         </p>

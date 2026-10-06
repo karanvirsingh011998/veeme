@@ -30,6 +30,8 @@ export type Database = {
           avatar_url: string | null;
           account_status: string;
           is_admin: boolean;
+          terms_accepted_at: string | null;
+          privacy_accepted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -48,6 +50,8 @@ export type Database = {
           avatar_url?: string | null;
           account_status?: string;
           is_admin?: boolean;
+          terms_accepted_at?: string | null;
+          privacy_accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -66,6 +70,8 @@ export type Database = {
           avatar_url?: string | null;
           account_status?: string;
           is_admin?: boolean;
+          terms_accepted_at?: string | null;
+          privacy_accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

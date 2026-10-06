@@ -85,6 +85,13 @@ export async function registerUserInDatabase(
     return { ok: false, error: "Could not create user account." };
   }
 
+  if (!draft.termsAcceptedAt || !draft.privacyAcceptedAt) {
+    return {
+      ok: false,
+      error: "You must accept the Terms & Conditions and Privacy Policy.",
+    };
+  }
+
   const now = new Date().toISOString();
   const { data: profile, error: profileError } = await admin
     .from("profiles")
@@ -98,6 +105,8 @@ export async function registerUserInDatabase(
       phone_number: phoneNumber,
       display_name: `${draft.firstName.trim()} ${draft.lastName.trim()}`.trim(),
       phone_verified_at: now,
+      terms_accepted_at: draft.termsAcceptedAt,
+      privacy_accepted_at: draft.privacyAcceptedAt,
       account_status: "active",
       updated_at: now,
     })
@@ -197,6 +206,13 @@ async function findAuthUserIdByPhone(
 }
 
 async function registerUserLocally(draft: SignupDraft): Promise<DbAuthResult> {
+  if (!draft.termsAcceptedAt || !draft.privacyAcceptedAt) {
+    return {
+      ok: false,
+      error: "You must accept the Terms & Conditions and Privacy Policy.",
+    };
+  }
+
   const existing = (await listDevProfiles()).find(
     (p) =>
       p.country_code === draft.countryCode &&
@@ -226,6 +242,8 @@ async function registerUserLocally(draft: SignupDraft): Promise<DbAuthResult> {
     avatar_url: null,
     account_status: "active",
     is_admin: false,
+    terms_accepted_at: draft.termsAcceptedAt,
+    privacy_accepted_at: draft.privacyAcceptedAt,
     created_at: now,
     updated_at: now,
   };

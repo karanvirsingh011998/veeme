@@ -32,6 +32,24 @@
   font-weight: 700;
 }
 
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.links a {
+  color: var(--vemee-muted);
+  text-decoration: none;
+  font-weight: 650;
+}
+
+.links a:hover {
+  color: var(--vemee-peach-2);
+}
+
 .copy {
   margin: 0;
   font-size: 12px;

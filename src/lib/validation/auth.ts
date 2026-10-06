@@ -16,6 +16,7 @@ export type SignupFormValues = {
   gender: GenderOption | "";
   countryCode: string;
   phoneNumber: string;
+  acceptedLegal: boolean;
 };
 
 export type FieldErrors = Partial<Record<keyof SignupFormValues, string>>;
@@ -58,6 +59,13 @@ export function validateCountryCode(value: string): string | null {
   return null;
 }
 
+export function validateLegalAcceptance(accepted: boolean): string | null {
+  if (!accepted) {
+    return "Please accept the Terms & Conditions and Privacy Policy to continue.";
+  }
+  return null;
+}
+
 export function validateSignupForm(
   values: SignupFormValues,
   mobileError: string | null,
@@ -68,6 +76,7 @@ export function validateSignupForm(
   const emailError = validateEmail(values.email);
   const genderError = validateGender(values.gender);
   const countryCodeError = validateCountryCode(values.countryCode);
+  const legalError = validateLegalAcceptance(values.acceptedLegal);
 
   if (firstNameError) errors.firstName = firstNameError;
   if (lastNameError) errors.lastName = lastNameError;
@@ -75,6 +84,7 @@ export function validateSignupForm(
   if (genderError) errors.gender = genderError;
   if (countryCodeError) errors.countryCode = countryCodeError;
   if (mobileError) errors.phoneNumber = mobileError;
+  if (legalError) errors.acceptedLegal = legalError;
 
   return errors;
 }

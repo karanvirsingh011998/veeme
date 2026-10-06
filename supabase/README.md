@@ -7,6 +7,7 @@
 | `migrations/20260326120000_initial_schema.sql` | Enums, tables, triggers, seed categories |
 | `migrations/20260326120100_rls_policies.sql` | Row Level Security policies |
 | `migrations/20260326160000_activity_plans.sql` | Plans, participants, connections, approx location |
+| `migrations/20260326170000_legal_acceptance.sql` | Terms / Privacy acceptance timestamps on profiles |
 | `QUERIES.sql` | Copy-paste operational / discover queries |
 
 ## Plans + chat data

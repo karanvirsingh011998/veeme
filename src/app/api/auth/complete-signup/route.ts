@@ -33,6 +33,18 @@ export async function POST(request: Request) {
     );
   }
 
+  const termsAcceptedAt = (body.termsAcceptedAt || "").trim();
+  const privacyAcceptedAt = (body.privacyAcceptedAt || "").trim();
+  if (!termsAcceptedAt || !privacyAcceptedAt) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "You must accept the Terms & Conditions and Privacy Policy.",
+      },
+      { status: 400 },
+    );
+  }
+
   // Re-verify OTP server-side before writing to the database
   const otpCheck =
     getPhoneAuthMode() === "supabase"
@@ -56,6 +68,8 @@ export async function POST(request: Request) {
     gender: body.gender,
     countryCode,
     phoneNumber,
+    termsAcceptedAt,
+    privacyAcceptedAt,
   });
 
   if (!result.ok) {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { requestOtp } from "@/lib/auth/auth";
@@ -32,6 +33,7 @@ export function SignupForm() {
     gender: "",
     countryCode: DEFAULT_COUNTRY_DIAL_CODE,
     phoneNumber: "",
+    acceptedLegal: false,
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof SignupFormValues, string>>
@@ -64,6 +66,7 @@ export function SignupForm() {
       return;
     }
 
+    const acceptedAt = new Date().toISOString();
     saveSignupDraft({
       firstName: values.firstName.trim(),
       lastName: values.lastName.trim(),
@@ -71,6 +74,8 @@ export function SignupForm() {
       gender: values.gender as GenderOption,
       countryCode: values.countryCode,
       phoneNumber: values.phoneNumber.replace(/\D/g, ""),
+      termsAcceptedAt: acceptedAt,
+      privacyAcceptedAt: acceptedAt,
     });
 
     router.push(
@@ -164,6 +169,35 @@ export function SignupForm() {
         disabled={submitting}
       />
 
+      <div className={styles.legalField}>
+        <label className={styles.legalLabel} htmlFor="accepted-legal">
+          <input
+            id="accepted-legal"
+            name="acceptedLegal"
+            type="checkbox"
+            checked={values.acceptedLegal}
+            onChange={(e) => updateField("acceptedLegal", e.target.checked)}
+            aria-invalid={Boolean(errors.acceptedLegal)}
+            aria-describedby={
+              errors.acceptedLegal ? "accepted-legal-error" : undefined
+            }
+            disabled={submitting}
+          />
+          <span>
+            I agree to the{" "}
+            <Link href="/terms" target="_blank" rel="noopener noreferrer">
+              Terms &amp; Conditions
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
+        <FieldError id="accepted-legal-error" message={errors.acceptedLegal} />
+      </div>
+
       {formError ? (
         <p className={styles.formError} role="alert">
           {formError}
@@ -174,7 +208,7 @@ export function SignupForm() {
         type="submit"
         variant="primary"
         className={styles.submit}
-        disabled={submitting}
+        disabled={submitting || !values.acceptedLegal}
       >
         {submitting ? "Sending code…" : "Continue"}
       </Button>
