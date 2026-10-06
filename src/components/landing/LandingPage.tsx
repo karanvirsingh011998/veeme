@@ -1,15 +1,13 @@
 import { SiteHeader } from "./SiteHeader";
 import { Hero } from "./Hero";
-import { Categories } from "./Categories";
-import { PlansDifferentiator } from "./PlansDifferentiator";
+import { LiveNearby } from "./LiveNearby";
 import { HowItWorks } from "./HowItWorks";
 import { Safety } from "./Safety";
-import { Lifestyle } from "./Lifestyle";
 import { FinalCta } from "./FinalCta";
 import { Footer } from "./Footer";
 
 /**
- * Public Vemee landing page — plans-first social discovery experience.
+ * Veeme Refined landing — peach palette, plans-first mobile composition.
  */
 export function LandingPage() {
   return (
@@ -17,11 +15,9 @@ export function LandingPage() {
       <SiteHeader />
       <main>
         <Hero />
-        <Categories />
-        <PlansDifferentiator />
+        <LiveNearby />
         <HowItWorks />
         <Safety />
-        <Lifestyle />
         <FinalCta />
       </main>
       <Footer />

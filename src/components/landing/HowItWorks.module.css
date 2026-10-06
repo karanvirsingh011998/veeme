@@ -4,90 +4,53 @@
 
 .steps {
   list-style: none;
-  margin: 28px 0 0;
-  padding: 0;
+  margin: 24px 0 0;
+  padding: 22px 18px;
   display: grid;
-  gap: 14px;
+  gap: 18px;
+  background: var(--vemee-band);
+  border: 1px solid var(--vemee-line);
+  border-radius: var(--radius-xl);
 }
 
 .step {
-  position: relative;
-}
-
-.card {
-  background: var(--vemee-surface);
-  border: 1px solid var(--vemee-line);
-  border-radius: var(--radius-lg);
-  padding: 22px 18px;
-  box-shadow: var(--shadow-soft);
-  height: 100%;
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card);
-}
-
-.top {
-  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
 }
 
 .number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 42px;
-  height: 42px;
-  padding-inline: 10px;
-  border-radius: 14px;
-  background: var(--vemee-green-soft);
-  color: var(--vemee-green);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--vemee-peach-soft);
+  color: var(--vemee-peach-2);
+  display: grid;
+  place-items: center;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 750;
-  letter-spacing: 0.04em;
-}
-
-.title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 750;
-  letter-spacing: -0.5px;
 }
 
 .copy {
-  margin: 8px 0 0;
-  color: var(--vemee-muted);
+  margin: 0;
+  color: var(--vemee-ink);
   font-size: 15px;
-  line-height: 1.45;
-}
-
-.connector {
-  display: none;
+  line-height: 1.5;
+  font-weight: 550;
 }
 
 @media (min-width: 1024px) {
   .steps {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 18px;
-    margin-top: 40px;
+    margin-top: 32px;
+    padding: 28px 28px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
   }
 
-  .connector {
-    display: block;
-    position: absolute;
-    top: 42px;
-    right: -12px;
-    width: 24px;
-    height: 2px;
-    background: linear-gradient(90deg, #c9d8d0, transparent);
-    z-index: 1;
-  }
-
-  .step:last-child .connector {
-    display: none;
+  .step {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }

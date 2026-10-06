@@ -1,70 +1,39 @@
 .footer {
-  padding: 48px 0 32px;
-  border-top: 1px solid var(--vemee-line);
-  background: var(--vemee-surface);
+  padding: 8px 0 36px;
+  background: var(--vemee-bg);
 }
 
 .inner {
   display: grid;
-  gap: 28px;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
 }
 
-.logo {
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-display);
-  font-size: 24px;
   font-weight: 750;
-  letter-spacing: -0.9px;
-  color: var(--vemee-green);
-}
-
-.brand p {
-  margin: 10px 0 0;
-  color: var(--vemee-muted);
-  font-size: 14px;
-  max-width: 28ch;
-  line-height: 1.45;
-}
-
-.links,
-.legalNav {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 16px;
-}
-
-.links a,
-.legalNav a {
-  font-size: 14px;
-  font-weight: 650;
-  color: var(--vemee-muted);
-}
-
-.links a:hover,
-.legalNav a:hover {
+  letter-spacing: -0.5px;
   color: var(--vemee-ink);
 }
 
-.legal {
-  margin-top: 28px;
-  padding-top: 18px;
-  border-top: 1px solid var(--vemee-line);
+.mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--vemee-peach);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.legal p {
+.copy {
   margin: 0;
   font-size: 12px;
   color: var(--vemee-muted);
-}
-
-@media (min-width: 768px) {
-  .inner {
-    grid-template-columns: 1.2fr 1fr 1fr;
-    align-items: start;
-    gap: 40px;
-  }
-
-  .links,
-  .legalNav {
-    grid-template-columns: 1fr;
-  }
 }

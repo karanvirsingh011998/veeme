@@ -1,23 +1,14 @@
 /**
- * Shared marketing and product content for the Vemee landing experience.
+ * Shared marketing content for the Veeme Refined landing experience.
  */
 
-export const NAV_LINKS = [
-  { href: "#discover", label: "Explore" },
-  { href: "#activities", label: "Activities" },
-  { href: "#communities", label: "Communities" },
-  { href: "#about", label: "About" },
-  { href: "#safety", label: "Safety" },
-  { href: "#contact", label: "Contact" },
-] as const;
-
-/** Compact primary nav for the sticky header. */
 export const HEADER_NAV_LINKS = [
-  { href: "#discover", label: "Explore" },
-  { href: "#about", label: "About" },
+  { href: "#nearby", label: "Plans" },
   { href: "#how-it-works", label: "How it works" },
   { href: "#safety", label: "Safety" },
 ] as const;
+
+export const NAV_LINKS = HEADER_NAV_LINKS;
 
 export const FOOTER_LEGAL = [
   { href: "#privacy", label: "Privacy Policy" },
@@ -25,152 +16,54 @@ export const FOOTER_LEGAL = [
   { href: "#guidelines", label: "Community Guidelines" },
 ] as const;
 
-/** Use-case chips shown under the hero (not in the first viewport composition). */
-export const HERO_USE_CASES = [
-  { icon: "🏋️", label: "Find a gym/workout partner" },
-  { icon: "🏏", label: "Join a weekend outdoor game" },
-  { icon: "🎮", label: "Find your PUBG/BGMI squad" },
-  { icon: "✈️", label: "Find travel companions" },
-  { icon: "🎬", label: "Find someone for a movie" },
-  { icon: "☕", label: "Grab coffee or have a chat" },
-  { icon: "📚", label: "Find study partners" },
-  { icon: "🎟️", label: "Discover events and experiences" },
-] as const;
-
-export const CATEGORIES = [
+export const LIVE_PLANS = [
   {
-    icon: "✈️",
-    label: "Travel",
-    description: "Find travel companions for your next trip.",
+    category: "Sports",
+    title: "Morning badminton",
+    meta: "7:00 AM • 4 spots",
   },
   {
-    icon: "🏋️",
-    label: "Fitness",
-    description: "Find workout partners, running buddies or gym partners.",
+    category: "Coffee",
+    title: "Cafe catch-up",
+    meta: "Today, 5:30 • 2 spots",
   },
   {
-    icon: "🏏",
-    label: "Outdoor",
-    description:
-      "Find people for cricket, football, badminton, trekking and more.",
+    category: "Study",
+    title: "Library deep work",
+    meta: "Tomorrow, 10:00 • 3 spots",
   },
   {
-    icon: "🎮",
-    label: "Gaming",
-    description:
-      "Need one more for your squad? Find players who are ready to play.",
+    category: "Travel",
+    title: "Weekend day trip",
+    meta: "Sat, 7:00 AM • 5 spots",
   },
   {
-    icon: "🎬",
-    label: "Movies & Fun",
-    description: "Movie plans, coffee, food or a casual hangout.",
-  },
-  {
-    icon: "📚",
-    label: "Study",
-    description: "Find study partners, learning groups and communities.",
-  },
-  {
-    icon: "🎟️",
-    label: "Events",
-    description: "Discover experiences and join people going there.",
-  },
-  {
-    icon: "👥",
-    label: "Communities",
-    description: "Join communities around your interests.",
-  },
-] as const;
-
-export const PLAN_EXAMPLES = [
-  {
-    plan: "I want to play cricket this weekend.",
-    outcome: "Find people nearby who want to play.",
-    accent: "outdoor",
-  },
-  {
-    plan: "I need a PUBG squad tonight.",
-    outcome: "Find players looking for teammates.",
-    accent: "gaming",
-  },
-  {
-    plan: "I want to go trekking on Saturday.",
-    outcome: "Discover a trek and people joining it.",
-    accent: "travel",
-  },
-  {
-    plan: "I want someone to go for a movie.",
-    outcome: "Find people interested in the same movie.",
-    accent: "fun",
-  },
-  {
-    plan: "I want a study partner.",
-    outcome: "Join a study community.",
-    accent: "study",
+    category: "Events",
+    title: "Indie film night",
+    meta: "Tonight, 8:15 • 6 spots",
   },
 ] as const;
 
 export const HOW_IT_WORKS = [
   {
-    step: "01",
-    title: "Choose what you want to do",
-    description: "Pick an activity, plan or interest.",
-    icon: "01",
-  },
-  {
-    step: "02",
-    title: "Find your people",
+    step: "1",
     description:
-      "Discover people and communities looking for the same thing.",
-    icon: "02",
+      "Pick a plan that fits your mood — sports, coffee, study, travel, or events.",
   },
   {
-    step: "03",
-    title: "Connect",
-    description: "Chat, join a group or respond to a plan.",
-    icon: "03",
-  },
-  {
-    step: "04",
-    title: "Do more together",
+    step: "2",
     description:
-      "Meet, play, travel, study, explore and create experiences together.",
-    icon: "04",
+      "Tap in. You’re joining a plan, not a profile — no small talk needed.",
+  },
+  {
+    step: "3",
+    description:
+      "Show up, do the thing together, and see who you click with.",
   },
 ] as const;
 
 export const TRUST_FEATURES = [
-  {
-    icon: "✓",
-    title: "Verified people",
-    description: "Know who you’re connecting with.",
-  },
-  {
-    icon: "★",
-    title: "Ratings & reputation",
-    description: "Build trust through genuine experiences.",
-  },
-  {
-    icon: "◈",
-    title: "Community-first",
-    description: "Join activity-based groups and communities.",
-  },
-  {
-    icon: "◎",
-    title: "Safety-focused",
-    description:
-      "Controls designed to make meeting and interacting with people more comfortable.",
-  },
-] as const;
-
-export const LIFESTYLE_TILES = [
-  { label: "Travel", tone: "a" },
-  { label: "Fitness", tone: "b" },
-  { label: "Gaming", tone: "c" },
-  { label: "Food", tone: "d" },
-  { label: "Movies", tone: "a" },
-  { label: "Study", tone: "b" },
-  { label: "Sports", tone: "c" },
-  { label: "Events", tone: "d" },
-  { label: "Communities", tone: "a" },
+  { title: "Verified people" },
+  { title: "Community ratings" },
+  { title: "Safety controls" },
 ] as const;

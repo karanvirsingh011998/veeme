@@ -4,7 +4,7 @@ import styles from "./AuthShell.module.css";
 
 type AuthShellProps = {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   children: ReactNode;
   footer?: ReactNode;
   wide?: boolean;
@@ -31,7 +31,7 @@ export function AuthShell({
       <main className={styles.main}>
         <div className={`${styles.card} ${wide ? styles.cardWide : ""}`}>
           <h1 className={styles.title}>{title}</h1>
-          <p className={styles.subtitle}>{subtitle}</p>
+          {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
           {children}
           {footer ? <div className={styles.footer}>{footer}</div> : null}
         </div>

@@ -9,8 +9,7 @@ export const metadata = {
 export default function SignupPage() {
   return (
     <AuthShell
-      title="Create your Vemee account"
-      subtitle="Tell us a little about you, then verify your mobile number."
+      title="Create your account"
       wide
       footer={
         <>

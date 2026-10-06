@@ -1,197 +1,187 @@
 .hero {
-  position: relative;
-  padding: calc(var(--header-h-mobile) + 20px) 0 0;
-  overflow: hidden;
-  isolation: isolate;
+  padding: 20px 0 36px;
+  background: var(--vemee-bg);
 }
 
-.atmosphere {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(ellipse 70% 55% at 8% 12%, rgba(232, 242, 237, 0.95), transparent 58%),
-    radial-gradient(ellipse 50% 40% at 92% 8%, rgba(220, 232, 225, 0.7), transparent 50%),
-    linear-gradient(180deg, #eef4f0 0%, var(--vemee-bg) 72%);
-}
-
-.grid {
+.inner {
   display: grid;
-  gap: 32px;
-  padding-bottom: 28px;
-  min-height: min(72vh, 640px);
-  align-content: center;
+  gap: 28px;
 }
 
 .copy {
-  text-align: left;
   max-width: 36rem;
 }
 
-.brand {
-  margin: 0 0 12px;
-  font-family: var(--font-display);
-  font-size: clamp(28px, 7vw, 40px);
-  font-weight: 750;
-  letter-spacing: -1.4px;
-  color: var(--vemee-green);
-  line-height: 1;
+.badge {
+  margin: 0 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  color: var(--vemee-muted);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--vemee-peach);
+  box-shadow: 0 0 0 3px rgba(215, 126, 73, 0.18);
 }
 
 .title {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(36px, 9vw, 52px);
-  line-height: 1.02;
+  line-height: 1.05;
   letter-spacing: -1.6px;
   font-weight: 750;
+  color: var(--vemee-ink);
 }
 
 .subtitle {
   margin: 16px 0 0;
   max-width: 34ch;
   color: var(--vemee-muted);
-  font-size: clamp(16px, 3.6vw, 18px);
-  line-height: 1.5;
+  font-size: clamp(15px, 3.5vw, 17px);
+  line-height: 1.55;
 }
 
-.actions {
-  margin-top: 24px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
+.cta {
+  margin-top: 22px;
+  width: 100%;
+  max-width: 360px;
 }
 
-.primary {
-  min-width: 148px;
+.micro {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--vemee-muted);
+  font-weight: 550;
 }
 
-.assurance {
-  margin: 18px 0 0;
-  max-width: 36ch;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--vemee-ink);
-  font-weight: 600;
+.featured {
+  display: block;
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  background: var(--vemee-band);
+  box-shadow: var(--shadow-float);
 }
 
-.visual {
-  margin-top: 4px;
+.photoWrap {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
 }
 
-.useCases {
-  border-top: 1px solid var(--vemee-line);
-  background: rgba(255, 255, 255, 0.55);
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+}
+
+.planCard {
+  margin: -56px 14px 14px;
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 253, 250, 0.96);
+  border: 1px solid rgba(236, 226, 219, 0.9);
+  border-radius: 18px;
+  padding: 14px 16px;
   backdrop-filter: blur(8px);
-  padding: 14px 0 16px;
+  box-shadow: var(--shadow-card);
 }
 
-.useCaseTrack {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-inline: 16px;
-  scroll-snap-type: x mandatory;
+.planTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
 }
 
-.useCase {
-  flex: none;
-  scroll-snap-align: start;
+.planMeta {
+  margin: 8px 0 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--vemee-line);
-  background: var(--vemee-surface);
-  color: var(--vemee-ink);
+  gap: 6px;
   font-size: 13px;
-  font-weight: 650;
-  white-space: nowrap;
-  transition:
-    border-color 0.15s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+  font-weight: 700;
+  color: var(--vemee-ink);
 }
 
-.useCase:hover {
-  border-color: var(--vemee-border-soft);
-  box-shadow: var(--shadow-soft);
-  transform: translateY(-1px);
+.pin {
+  font-size: 12px;
 }
 
-@media (min-width: 640px) {
+.planDetail {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--vemee-muted);
+}
+
+@media (min-width: 768px) {
   .hero {
-    padding-top: calc(var(--header-h) + 28px);
+    padding: 28px 0 48px;
   }
 
-  .useCaseTrack {
-    padding-inline: 24px;
+  .cta {
+    width: auto;
   }
 
-  .title {
-    font-size: clamp(44px, 7vw, 58px);
+  .photoWrap {
+    aspect-ratio: 16 / 10;
   }
 }
 
 @media (min-width: 1024px) {
-  .hero {
-    padding-top: calc(var(--header-h) + 36px);
-  }
-
-  .grid {
+  .inner {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
     align-items: center;
     gap: 48px;
-    min-height: min(78vh, 720px);
-    padding-bottom: 40px;
-  }
-
-  .brand {
-    font-size: 48px;
+    min-height: min(70vh, 640px);
   }
 
   .title {
-    font-size: clamp(56px, 5.2vw, 72px);
-    letter-spacing: -2.2px;
+    font-size: clamp(48px, 5vw, 64px);
+    letter-spacing: -2px;
   }
 
   .subtitle {
-    margin-top: 18px;
-    font-size: 19px;
+    font-size: 18px;
     max-width: 38ch;
   }
 
-  .actions {
-    margin-top: 28px;
+  .photoWrap {
+    aspect-ratio: 1 / 1.05;
+    min-height: 420px;
   }
 
-  .visual {
-    margin-top: 0;
-  }
-
-  .useCaseTrack {
-    max-width: var(--container);
-    margin-inline: auto;
-    padding-inline: 32px;
+  .planCard {
+    margin: -72px 20px 20px;
+    padding: 16px 18px;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .copy {
-    animation: riseIn 0.7s ease both;
+    animation: riseIn 0.65s ease both;
   }
 
-  .visual {
-    animation: riseIn 0.85s ease 0.08s both;
+  .featured {
+    animation: riseIn 0.8s ease 0.06s both;
   }
 }
 
 @keyframes riseIn {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;

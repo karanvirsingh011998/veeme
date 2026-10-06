@@ -17,7 +17,7 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Vemee — Find your people. Do more together.",
   description:
-    "A trusted way to find people, plans and communities around things you actually enjoy. Plans, not profiles.",
+    "Someone’s already holding a spot. See what’s happening near you and roll in — no awkward firsts, just good company.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

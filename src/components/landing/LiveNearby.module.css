@@ -1,0 +1,116 @@
+.section {
+  padding-top: 8px;
+  background: var(--vemee-bg);
+  overflow: hidden;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 4vw, 32px);
+  letter-spacing: -0.8px;
+  font-weight: 750;
+}
+
+.viewport {
+  margin-top: 18px;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 4%,
+    #000 96%,
+    transparent
+  );
+}
+
+.track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  padding: 4px 20px 12px;
+  animation: marquee 28s linear infinite;
+}
+
+.viewport:hover .track {
+  animation-play-state: paused;
+}
+
+.card {
+  flex: 0 0 220px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 132px;
+  padding: 18px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: 22px;
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.category {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vemee-peach-2);
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+  color: var(--vemee-ink);
+}
+
+.meta {
+  font-size: 13px;
+  color: var(--vemee-muted);
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 6px));
+  }
+}
+
+@media (min-width: 640px) {
+  .track {
+    padding-inline: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card {
+    flex-basis: 240px;
+  }
+
+  .track {
+    animation-duration: 36s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport {
+    overflow-x: auto;
+    mask-image: none;
+  }
+
+  .track {
+    animation: none;
+    width: auto;
+  }
+}

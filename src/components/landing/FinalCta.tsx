@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/Button";
 import styles from "./FinalCta.module.css";
 
 /**
- * Closing CTA — conversion-focused end of the landing journey.
+ * Peach closing CTA — “Your seat's still open.”
  */
 export function FinalCta() {
   return (
@@ -13,23 +13,15 @@ export function FinalCta() {
     >
       <div className="container">
         <div className={styles.panel}>
-          <p className={styles.brand}>Vemee</p>
           <h2 id="final-cta-heading" className={styles.title}>
-            Find your people. Make better plans.
+            Your seat&apos;s still open.
           </h2>
           <p className={styles.copy}>
-            Whatever you want to do, there are people out there who want to do
-            it too.
+            Join free and find someone to do the next thing with.
           </p>
-          <p className={styles.tagline}>Find your people. Do more together.</p>
-          <div className={styles.actions}>
-            <Button href="/signup" variant="primary">
-              Get Started
-            </Button>
-            <Button href="#discover" variant="secondary">
-              Explore Vemee
-            </Button>
-          </div>
+          <Button href="/signup" variant="secondary" className={styles.cta}>
+            Find your people <span aria-hidden="true">→</span>
+          </Button>
         </div>
       </div>
     </section>

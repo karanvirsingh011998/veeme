@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/Button";
 import styles from "./SiteHeader.module.css";
 
 /**
- * Public landing header — compact hamburger on mobile, light nav on desktop.
- * Does not use the logged-in app bottom navigation.
+ * Public landing header — circular mark + brand + login (matches Veeme Refined).
  */
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -32,7 +31,10 @@ export function SiteHeader() {
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ""}`}>
       <div className={`container ${styles.inner}`}>
         <Link href="/" className={styles.logo} aria-label="Vemee home">
-          Vemee
+          <span className={styles.mark} aria-hidden="true">
+            v
+          </span>
+          <span className={styles.wordmark}>Vemee</span>
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Primary">
@@ -52,19 +54,24 @@ export function SiteHeader() {
           </Button>
         </div>
 
-        <button
-          type="button"
-          className={styles.menuBtn}
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span className={open ? styles.burgerOpen : styles.burger}>
-            <i />
-            <i />
-            <i />
-          </span>
-        </button>
+        <div className={styles.mobileActions}>
+          <Link href="/login" className={styles.mobileLogin}>
+            Log in
+          </Link>
+          <button
+            type="button"
+            className={styles.menuBtn}
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <span className={open ? styles.burgerOpen : styles.burger}>
+              <i />
+              <i />
+              <i />
+            </span>
+          </button>
+        </div>
       </div>
 
       <div
@@ -82,7 +89,7 @@ export function SiteHeader() {
               {link.label}
             </a>
           ))}
-          <div className={styles.mobileActions}>
+          <div className={styles.drawerActions}>
             <Button href="/login" variant="secondary" className={styles.full}>
               Log in
             </Button>
