@@ -5,7 +5,7 @@ import type { PublicProfileDto } from "@/lib/people/types";
 import type { ProfileRow } from "@/types/database";
 
 const PROFILE_SELECT =
-  "id, first_name, last_name, display_name, city, bio, avatar_url, phone_verified_at, account_status";
+  "id, first_name, last_name, display_name, city, bio, avatar_url, phone_verified_at, account_status, interests";
 
 function toPublic(profile: ProfileRow): PublicProfileDto {
   const interests =

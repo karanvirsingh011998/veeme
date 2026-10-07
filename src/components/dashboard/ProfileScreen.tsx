@@ -6,6 +6,12 @@ import { useAuth } from "@/components/dashboard/AuthProvider";
 import { MANUAL_CITIES } from "@/lib/location/geo";
 import { updateProfile } from "@/lib/profile/service";
 import { ScreenLoading } from "@/components/dashboard/ui/ScreenLoading";
+import {
+  EMPTY_RATING_COUNTS,
+  getPersonRatingCounts,
+  type PersonRatingCounts,
+} from "@/lib/people/ratings";
+import { PersonRatingCountsView } from "@/components/dashboard/people/PersonRating";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { commitApproxLocation } from "@/store/slices/locationSlice";
 import { fetchProfileStats, profileLoaded } from "@/store/slices/userSlice";
@@ -34,6 +40,8 @@ export function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [ratingCounts, setRatingCounts] =
+    useState<PersonRatingCounts>(EMPTY_RATING_COUNTS);
   const loadingStats = statsStatus === "idle" || statsStatus === "loading";
 
   useEffect(() => {
@@ -44,6 +52,13 @@ export function ProfileScreen() {
   useEffect(() => {
     if (!userId) return;
     void dispatch(fetchProfileStats(userId));
+    let cancelled = false;
+    void getPersonRatingCounts(userId).then((counts) => {
+      if (!cancelled) setRatingCounts(counts);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [dispatch, userId]);
 
   async function saveBasics() {
@@ -135,6 +150,10 @@ export function ProfileScreen() {
           </div>
         </div>
       )}
+
+      <div className={styles.ratingTotals}>
+        <PersonRatingCountsView counts={ratingCounts} />
+      </div>
 
       {editing ? (
         <section className={styles.card}>

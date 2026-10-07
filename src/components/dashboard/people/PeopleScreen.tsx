@@ -7,6 +7,11 @@ import { useAuth } from "@/components/dashboard/AuthProvider";
 import { respondToConnection, sendConnectRequest } from "@/lib/connections/service";
 import { getOrCreateDirectConversation } from "@/lib/chat/service";
 import { readApproxLocation } from "@/lib/location/geo";
+import {
+  savePersonRating,
+  type PersonRatingTier,
+} from "@/lib/people/ratings";
+import { PersonRating } from "@/components/dashboard/people/PersonRating";
 import { LocationPrompt } from "@/components/dashboard/location/LocationPrompt";
 import {
   SectionError,
@@ -27,6 +32,7 @@ import {
   fetchPeopleCards,
   fetchPeopleConnections,
   setPersonConnection,
+  setViewerRating,
 } from "@/store/slices/peopleSlice";
 import styles from "../social.module.css";
 
@@ -66,6 +72,21 @@ export function PeopleScreen() {
     const loc = storedLocation ?? readApproxLocation();
     void dispatch(fetchPeopleCards({ userId, location: loc, force: true }));
     void dispatch(fetchPeopleConnections({ userId, location: loc, force: true }));
+  }
+
+  async function onRate(personId: string, tier: PersonRatingTier) {
+    if (!userId) return;
+    const previous =
+      people.find((person) => person.id === personId)?.viewerRating ?? null;
+    const next = previous === tier ? null : tier;
+    dispatch(setViewerRating({ id: personId, tier: next }));
+    const result = await savePersonRating(userId, personId, next);
+    if (!result.ok) {
+      dispatch(setViewerRating({ id: personId, tier: previous }));
+      return;
+    }
+    const loc = storedLocation ?? readApproxLocation();
+    void dispatch(fetchPeopleCards({ userId, location: loc, force: true }));
   }
 
   async function onConnect(personId: string) {
@@ -275,6 +296,10 @@ export function PeopleScreen() {
                 {person.bio ||
                   "Looking for people to do activities and explore together."}
               </p>
+              <PersonRating
+                value={person.viewerRating}
+                onChange={(tier) => void onRate(person.id, tier)}
+              />
               <div className={styles.actions}>
                 <Link
                   href={`/dashboard/people/${person.id}`}

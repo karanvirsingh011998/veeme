@@ -136,6 +136,10 @@
   color: var(--vemee-muted);
 }
 
+.ratingTotals {
+  margin-top: 14px;
+}
+
 .card {
   margin-top: 14px;
   background: var(--vemee-surface);

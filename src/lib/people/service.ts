@@ -13,6 +13,11 @@ import {
   type Connection,
 } from "@/lib/connections/service";
 import type { PublicProfileDto } from "@/lib/people/types";
+import {
+  listMyPersonRatings,
+  ratingAdjustment,
+  type PersonRatingTier,
+} from "@/lib/people/ratings";
 
 export type PeopleCard = {
   id: string;
@@ -22,6 +27,7 @@ export type PeopleCard = {
   avatarUrl: string | null;
   interests: string[];
   rating: number | null;
+  viewerRating: PersonRatingTier | null;
   verified: boolean;
   distanceLabel: string | null;
   connectionStatus: "none" | "pending_sent" | "pending_received" | "connected";
@@ -77,6 +83,7 @@ function dtoToCard(
   viewerId?: string,
   distanceLabel?: string | null,
   connection?: Connection | null,
+  viewerRating: PersonRatingTier | null = null,
 ): PeopleCard {
   return {
     id: dto.id,
@@ -86,6 +93,7 @@ function dtoToCard(
     avatarUrl: dto.avatarUrl,
     interests: dto.interests,
     rating: null,
+    viewerRating,
     verified: dto.verified,
     distanceLabel: distanceLabel ?? dto.city,
     connectionStatus:
@@ -112,6 +120,7 @@ function localRowToCard(
     avatarUrl: profile.avatar_url,
     interests,
     rating: null,
+    viewerRating: null,
     verified: Boolean(profile.phone_verified_at),
     distanceLabel: profile.city,
     connectionStatus: connectionStatusFor(viewerId, profile.id),
@@ -193,7 +202,13 @@ export async function listPeopleYouMayConnectWith(
 
   if (profiles.length === 0) return [];
 
-  const connections = await listConnectionsForAsync(currentUserId);
+  const [connections, myRatings] = await Promise.all([
+    listConnectionsForAsync(currentUserId),
+    listMyPersonRatings(currentUserId),
+  ]);
+  const ratingBySubject = new Map(
+    myRatings.map((rating) => [rating.subjectId, rating.tier]),
+  );
 
   const myPlanCategories = new Set(
     listStoredPlans()
@@ -222,6 +237,7 @@ export async function listPeopleYouMayConnectWith(
       (p) => p.creatorId === profile.id,
     );
     if (theirPlans.some((p) => myPlanCategories.has(p.category))) score += 2;
+    score += ratingAdjustment(profile, profiles, ratingBySubject);
 
     let distanceLabel: string | null = null;
     if (profile.city && opts?.userLocation?.city) {
@@ -240,14 +256,24 @@ export async function listPeopleYouMayConnectWith(
 
     return {
       score,
-      card: dtoToCard(profile, currentUserId, distanceLabel, connection),
+      card: dtoToCard(
+        profile,
+        currentUserId,
+        distanceLabel,
+        connection,
+        ratingBySubject.get(profile.id) ?? null,
+      ),
     };
   });
 
-  return scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 20)
-    .map((s) => s.card);
+  const ranked = scored.sort((a, b) => b.score - a.score);
+  const open = ranked.filter((row) => row.card.viewerRating !== "down");
+  const passed = ranked.filter((row) => row.card.viewerRating === "down");
+  const keptPassed = passed.slice(0, 5);
+  return [
+    ...open.slice(0, 20 - keptPassed.length),
+    ...keptPassed,
+  ].map((row) => row.card);
 }
 
 /** Sync local-only lookup (fallback). Prefer getPublicProfileCardAsync. */

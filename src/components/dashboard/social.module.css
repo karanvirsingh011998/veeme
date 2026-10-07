@@ -2,6 +2,51 @@
   min-height: 100%;
 }
 
+.postedPlans {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.postedPlans h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.postedPlanList {
+  display: grid;
+  gap: 8px;
+}
+
+.postedPlan {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--vemee-line);
+  border-radius: 16px;
+  background: var(--vemee-surface);
+  color: inherit;
+  text-decoration: none;
+}
+
+.postedPlan strong {
+  display: block;
+  font-size: 15px;
+}
+
+.postedPlanIcon {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--vemee-band);
+  font-size: 18px;
+}
+
 .headerRow {
   display: flex;
   align-items: center;
@@ -446,6 +491,130 @@
   display: grid;
   gap: 10px;
   box-shadow: var(--shadow-soft);
+}
+
+.ratingBlock {
+  display: grid;
+  gap: 8px;
+}
+
+.ratingCounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ratingCount {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--vemee-line);
+  background: var(--vemee-band);
+  color: var(--vemee-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  outline: none;
+}
+
+.ratingCount b {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ratingCountLabel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  z-index: 2;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--vemee-deep);
+  color: var(--vemee-on-peach);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ratingCount:hover .ratingCountLabel,
+.ratingCount:focus-visible .ratingCountLabel {
+  opacity: 1;
+}
+
+.ratingLabel {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vemee-ink);
+}
+
+.ratingRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ratingMark {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.ratingText {
+  max-width: 100%;
+}
+
+.ratingBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  min-height: 62px;
+  padding: 8px 4px;
+  border-radius: 14px;
+  border: 1px solid var(--vemee-line);
+  background: var(--vemee-band);
+  color: var(--vemee-ink);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+}
+
+.ratingBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ratingBtnActive {
+  background: var(--vemee-peach-soft);
+  border-color: var(--vemee-peach);
+  color: var(--vemee-deep);
+}
+
+.ratingBtnDown {
+  background: #f3eeeb;
+  border-color: #b7a79e;
+  color: var(--vemee-deep);
+}
+
+.ratingBtnLove {
+  background: var(--vemee-peach);
+  border-color: var(--vemee-peach);
+  color: var(--vemee-on-peach);
 }
 
 .interestChips {

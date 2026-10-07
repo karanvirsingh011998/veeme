@@ -58,19 +58,23 @@ export const fetchPeopleCards = createAsyncThunk(
   "people/fetchCards",
   async (arg: PeopleArgs) => {
     const key = peopleKey(arg.userId, arg.location);
-    const items = await singleFlight(`people:${key}`, () =>
+    const load = () =>
       listPeopleYouMayConnectWith(arg.userId, {
         userLocation: arg.location,
         currentInterests: [],
-      }),
-    );
+      });
+    const items = arg.force
+      ? await load()
+      : await singleFlight(`people:${key}`, load);
     return { key, items };
   },
   {
     condition: (arg, { getState }) => {
       const people = (getState() as { people: PeopleState }).people;
       const key = peopleKey(arg.userId, arg.location);
-      if (people.status === "loading" && people.key === key) return false;
+      if (!arg.force && people.status === "loading" && people.key === key) {
+        return false;
+      }
       if (
         !arg.force &&
         people.status === "succeeded" &&
@@ -134,6 +138,16 @@ const peopleSlice = createSlice({
       const person = state.items.find((item) => item.id === action.payload.id);
       if (person) person.connectionStatus = action.payload.status;
     },
+    setViewerRating(
+      state,
+      action: PayloadAction<{
+        id: string;
+        tier: PeopleCard["viewerRating"];
+      }>,
+    ) {
+      const person = state.items.find((item) => item.id === action.payload.id);
+      if (person) person.viewerRating = action.payload.tier;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -183,5 +197,5 @@ const peopleSlice = createSlice({
   },
 });
 
-export const { setPersonConnection } = peopleSlice.actions;
+export const { setPersonConnection, setViewerRating } = peopleSlice.actions;
 export const peopleReducer = peopleSlice.reducer;
