@@ -20,21 +20,19 @@
   touch-action: pan-x;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  mask-image: linear-gradient(
-    90deg,
-    transparent,
-    #000 4%,
-    #000 96%,
-    transparent
-  );
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 20px;
+  scroll-behavior: auto;
 }
 
 .viewport::-webkit-scrollbar {
   display: none;
 }
 
-.viewport:active {
+.viewport:active,
+.dragging {
   cursor: grabbing;
+  scroll-snap-type: none;
 }
 
 .track {
@@ -56,6 +54,8 @@
   border-radius: 22px;
   box-shadow: var(--shadow-soft);
   user-select: none;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease;
@@ -88,6 +88,10 @@
 }
 
 @media (min-width: 640px) {
+  .viewport {
+    scroll-padding-left: 28px;
+  }
+
   .track {
     padding-inline: 28px;
   }
@@ -101,6 +105,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .viewport {
-    mask-image: none;
+    scroll-behavior: auto;
   }
 }

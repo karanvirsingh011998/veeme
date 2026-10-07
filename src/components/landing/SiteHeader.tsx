@@ -30,11 +30,14 @@ export function SiteHeader() {
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ""}`}>
       <div className={`container ${styles.inner}`}>
-        <Link href="/" className={styles.logo} aria-label="Vemee home">
+        <Link href="/" className={styles.logo}>
           <span className={styles.mark} aria-hidden="true">
             v
           </span>
-          <span className={styles.wordmark}>Vemee</span>
+          <span className={styles.brand}>
+            <span className={styles.wordmark}>Vemee</span>
+            <span className={styles.tagline}>Plans are happening near you today</span>
+          </span>
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Primary">

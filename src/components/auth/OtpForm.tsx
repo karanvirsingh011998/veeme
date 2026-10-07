@@ -109,6 +109,13 @@ export function OtpForm({ countryCode, phoneNumber, mode }: OtpFormProps) {
         const data = (await response.json()) as AuthProfilePayload;
 
         if (!response.ok || !data.ok || !data.profile) {
+          if (response.status === 409) {
+            const message =
+              data.error ||
+              "An account with this mobile number already exists. Please log in.";
+            router.replace(`/signup?error=${encodeURIComponent(message)}`);
+            return;
+          }
           setError(data.error || "Could not create your account.");
           submittingRef.current = false;
           setSubmitting(false);

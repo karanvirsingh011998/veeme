@@ -5,100 +5,153 @@ import { useEffect, useRef } from "react";
 import { LIVE_PLANS } from "@/lib/constants";
 import styles from "./LiveNearby.module.css";
 
-const AUTO_SPEED = 0.45;
-const RESUME_MS = 1400;
+const AUTOPLAY_MS = 2800;
+const RESUME_MS = 1600;
+const SLIDE_MS = 650;
 
 /**
- * Nearby-plans strip. Auto-scrolls, and the user can drag or scroll it.
+ * Looping card carousel. Slides one plan at a time, and can be dragged or swiped.
  */
 export function LiveNearby() {
   const viewportRef = useRef<HTMLDivElement>(null);
-  const pausedRef = useRef(false);
   const draggingRef = useRef(false);
   const movedRef = useRef(false);
-  const resumeRef = useRef<number | null>(null);
   const originRef = useRef({ x: 0, scroll: 0 });
+  const pauseRef = useRef<() => void>(() => {});
+  const programmaticRef = useRef(false);
 
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let frame = 0;
-    let ignoreScrollUntil = 0;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduced = motion.matches;
+    let timer = 0;
+    let resumeTimer = 0;
+    let normalizeTimer = 0;
 
-    function loopWidth() {
-      const track = viewport?.firstElementChild;
-      if (!track) return 0;
-      const first = track.children[0] as HTMLElement | undefined;
-      const second = track.children[LIVE_PLANS.length] as HTMLElement | undefined;
+    const scroller = viewport;
+
+    const onMotion = () => {
+      reduced = motion.matches;
+      arm();
+    };
+
+    const track = () => scroller.firstElementChild;
+
+    const loopWidth = () => {
+      const row = track();
+      if (!row) return 0;
+      const first = row.children[0] as HTMLElement | undefined;
+      const second = row.children[LIVE_PLANS.length] as HTMLElement | undefined;
       if (!first || !second) return 0;
       return second.offsetLeft - first.offsetLeft;
-    }
+    };
 
-    function wrap() {
-      const width = loopWidth();
-      if (!viewport || width <= 0) return;
-      if (viewport.scrollLeft >= width) viewport.scrollLeft -= width;
-      else if (viewport.scrollLeft < 0) viewport.scrollLeft += width;
-    }
+    const scrollPadding = () =>
+      parseFloat(getComputedStyle(scroller).scrollPaddingLeft) || 0;
 
-    function pause() {
-      pausedRef.current = true;
-      if (resumeRef.current) window.clearTimeout(resumeRef.current);
-      resumeRef.current = window.setTimeout(() => {
-        if (!draggingRef.current) pausedRef.current = false;
-      }, RESUME_MS);
-    }
-
-    function tick() {
-      if (!reduced && !pausedRef.current && viewport) {
-        ignoreScrollUntil = performance.now() + 80;
-        viewport.scrollLeft += AUTO_SPEED;
-        wrap();
+    const nearestIndex = () => {
+      const row = track();
+      if (!row) return 0;
+      const left = scroller.scrollLeft + scrollPadding();
+      let best = 0;
+      let bestDist = Number.POSITIVE_INFINITY;
+      for (let i = 0; i < row.children.length; i += 1) {
+        const card = row.children[i] as HTMLElement;
+        const dist = Math.abs(card.offsetLeft - left);
+        if (dist < bestDist) {
+          best = i;
+          bestDist = dist;
+        }
       }
-      frame = window.requestAnimationFrame(tick);
-    }
+      return best;
+    };
 
-    function onScroll() {
-      if (performance.now() < ignoreScrollUntil) return;
+    const normalize = () => {
+      const width = loopWidth();
+      if (width <= 0) return;
+      if (scroller.scrollLeft >= width - 1) {
+        const left = scroller.scrollLeft - width;
+        programmaticRef.current = true;
+        scroller.scrollTo({ left, behavior: "auto" });
+      }
+    };
+
+    const snapTo = (index: number, smooth: boolean) => {
+      const row = track();
+      const card = row?.children[index] as HTMLElement | undefined;
+      if (!card) return;
+      programmaticRef.current = true;
+      scroller.scrollTo({
+        left: card.offsetLeft - scrollPadding(),
+        behavior: smooth && !reduced ? "smooth" : "auto",
+      });
+      window.clearTimeout(normalizeTimer);
+      normalizeTimer = window.setTimeout(() => {
+        normalize();
+        window.setTimeout(() => {
+          programmaticRef.current = false;
+        }, 80);
+      }, smooth && !reduced ? SLIDE_MS : 40);
+    };
+
+    const advance = () => {
+      if (draggingRef.current || reduced) return;
+      normalize();
+      const row = track();
+      if (!row) return;
+      const next = nearestIndex() + 1;
+      if (next >= row.children.length) {
+        snapTo(0, true);
+        return;
+      }
+      snapTo(next, true);
+    };
+
+    const arm = () => {
+      window.clearInterval(timer);
+      if (reduced) return;
+      timer = window.setInterval(advance, AUTOPLAY_MS);
+    };
+
+    const pause = () => {
+      window.clearInterval(timer);
+      window.clearTimeout(resumeTimer);
+      resumeTimer = window.setTimeout(() => {
+        if (!draggingRef.current) arm();
+      }, RESUME_MS);
+    };
+
+    pauseRef.current = pause;
+
+    const onScrollEnd = () => {
+      if (programmaticRef.current || draggingRef.current) return;
       pause();
-      wrap();
-    }
+    };
 
-    function onWheel(event: WheelEvent) {
-      if (!viewport) return;
-      const delta =
-        Math.abs(event.deltaX) > Math.abs(event.deltaY)
-          ? event.deltaX
-          : event.deltaY;
-      if (delta === 0) return;
-      event.preventDefault();
-      pause();
-      viewport.scrollLeft += delta;
-      wrap();
-    }
-
-    frame = window.requestAnimationFrame(tick);
-    viewport.addEventListener("scroll", onScroll, { passive: true });
-    viewport.addEventListener("wheel", onWheel, { passive: false });
+    arm();
+    motion.addEventListener("change", onMotion);
+    viewport.addEventListener("scrollend", onScrollEnd);
 
     return () => {
-      window.cancelAnimationFrame(frame);
-      if (resumeRef.current) window.clearTimeout(resumeRef.current);
-      viewport.removeEventListener("scroll", onScroll);
-      viewport.removeEventListener("wheel", onWheel);
+      window.clearInterval(timer);
+      window.clearTimeout(resumeTimer);
+      window.clearTimeout(normalizeTimer);
+      motion.removeEventListener("change", onMotion);
+      viewport.removeEventListener("scrollend", onScrollEnd);
     };
   }, []);
 
   function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    pauseRef.current();
     if (event.pointerType !== "mouse" || event.button !== 0) return;
     const viewport = viewportRef.current;
     if (!viewport) return;
     draggingRef.current = true;
     movedRef.current = false;
-    pausedRef.current = true;
     originRef.current = { x: event.clientX, scroll: viewport.scrollLeft };
+    viewport.classList.add(styles.dragging);
     try {
       viewport.setPointerCapture(event.pointerId);
     } catch {
@@ -117,11 +170,43 @@ export function LiveNearby() {
 
   function endDrag() {
     if (!draggingRef.current) return;
+    const viewport = viewportRef.current;
     draggingRef.current = false;
-    if (resumeRef.current) window.clearTimeout(resumeRef.current);
-    resumeRef.current = window.setTimeout(() => {
-      pausedRef.current = false;
-    }, RESUME_MS);
+    viewport?.classList.remove(styles.dragging ?? "");
+    const step = (() => {
+      const row = viewport?.firstElementChild;
+      const first = row?.children[0] as HTMLElement | undefined;
+      const next = row?.children[1] as HTMLElement | undefined;
+      if (!first || !next) return 0;
+      return next.offsetLeft - first.offsetLeft;
+    })();
+    if (viewport && step > 0) {
+      const moved = viewport.scrollLeft - originRef.current.scroll;
+      const start = Math.round(originRef.current.scroll / step);
+      let index = Math.round(viewport.scrollLeft / step);
+      if (index === start) {
+        if (moved > step * 0.18) index = start + 1;
+        else if (moved < -step * 0.18) index = start - 1;
+      }
+      const row = viewport.firstElementChild;
+      const max = (row?.children.length ?? 1) - 1;
+      index = Math.max(0, Math.min(max, index));
+      const card = row?.children[index] as HTMLElement | undefined;
+      if (card) {
+        const pad = parseFloat(getComputedStyle(viewport).scrollPaddingLeft) || 0;
+        programmaticRef.current = true;
+        viewport.scrollTo({
+          left: card.offsetLeft - pad,
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
+        });
+        window.setTimeout(() => {
+          programmaticRef.current = false;
+        }, SLIDE_MS);
+      }
+    }
+    pauseRef.current();
   }
 
   function onClickCapture(event: React.MouseEvent) {
@@ -148,7 +233,8 @@ export function LiveNearby() {
       <div
         ref={viewportRef}
         className={styles.viewport}
-        aria-label="Live nearby plans carousel"
+        aria-roledescription="carousel"
+        aria-label="Live nearby plans"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { SignupForm } from "@/components/auth/SignupForm";
@@ -17,7 +18,9 @@ export default function SignupPage() {
         </>
       }
     >
-      <SignupForm />
+      <Suspense fallback={<p>Loading…</p>}>
+        <SignupForm />
+      </Suspense>
     </AuthShell>
   );
 }

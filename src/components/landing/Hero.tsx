@@ -12,10 +12,6 @@ export function Hero() {
     <section className={styles.hero} aria-labelledby="hero-heading">
       <div className={`container ${styles.inner}`}>
         <div className={styles.copy}>
-          <p className={styles.badge}>
-            <span className={styles.dot} aria-hidden="true" />
-            Plans are happening near you today
-          </p>
           <h1 id="hero-heading" className={styles.title}>
             Just people with common
             <br />

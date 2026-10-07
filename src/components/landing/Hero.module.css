@@ -12,28 +12,6 @@
   max-width: 36rem;
 }
 
-.badge {
-  margin: 0 0 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: var(--vemee-surface);
-  border: 1px solid var(--vemee-line);
-  color: var(--vemee-muted);
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--vemee-peach);
-  box-shadow: 0 0 0 3px rgba(215, 126, 73, 0.18);
-}
-
 .title {
   margin: 0;
   font-family: var(--font-display);

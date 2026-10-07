@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
 import { requestOtp } from "@/lib/auth/auth";
 import { buildOtpRoute } from "@/lib/auth/routes";
 import { saveSignupDraft } from "@/lib/auth/signup-draft";
@@ -24,6 +24,7 @@ import styles from "./auth-forms.module.css";
  */
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [values, setValues] = useState<SignupFormValues>({
@@ -38,6 +39,11 @@ export function SignupForm() {
   const [errors, setErrors] = useState<
     Partial<Record<keyof SignupFormValues, string>>
   >({});
+
+  useEffect(() => {
+    const fromQuery = searchParams.get("error");
+    if (fromQuery) setFormError(fromQuery);
+  }, [searchParams]);
 
   function updateField<K extends keyof SignupFormValues>(
     key: K,
@@ -57,7 +63,43 @@ export function SignupForm() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    const digits = values.phoneNumber.replace(/\D/g, "");
     setSubmitting(true);
+
+    try {
+      const checkResponse = await fetch("/api/auth/check-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          countryCode: values.countryCode,
+          phoneNumber: digits,
+        }),
+      });
+      const checkData = (await checkResponse.json()) as {
+        ok?: boolean;
+        error?: string;
+        code?: string;
+      };
+
+      if (checkResponse.ok && checkData.ok) {
+        setFormError(
+          "An account with this mobile number already exists. Please log in.",
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      if (!checkResponse.ok && checkData.code !== "NOT_FOUND") {
+        setFormError(checkData.error || "Unable to continue right now. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      setFormError("Unable to continue right now. Please try again.");
+      setSubmitting(false);
+      return;
+    }
+
     const otpResult = await requestOtp(values.countryCode, values.phoneNumber);
     setSubmitting(false);
 
