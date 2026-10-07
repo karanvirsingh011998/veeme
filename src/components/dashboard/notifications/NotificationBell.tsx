@@ -1,45 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/dashboard/AuthProvider";
-import { listConnectionsForAsync } from "@/lib/connections/service";
-import type { Connection } from "@/lib/connections/types";
-import type { PublicProfileDto } from "@/lib/people/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  selectNotificationError,
+  selectNotificationStatus,
+  selectNotifications,
+  selectSeenNotificationIds,
+  selectUnreadNotificationCount,
+} from "@/store/selectors/sharedSelectors";
+import { selectCurrentUserId } from "@/store/selectors/userSelectors";
+import {
+  fetchNotifications,
+  notificationsSeen,
+  type AppNotification,
+} from "@/store/slices/notificationSlice";
 import styles from "./NotificationBell.module.css";
-
-type NotificationKind = "request" | "accepted" | "declined";
-
-type AppNotification = {
-  id: string;
-  kind: NotificationKind;
-  actorId: string;
-  actorName: string;
-  message: string;
-  href: string;
-  at: string;
-};
-
-const POLL_MS = 20000;
-
-function seenKey(userId: string) {
-  return `vemee_notif_seen_v1:${userId}`;
-}
-
-function readSeen(userId: string): Set<string> {
-  if (typeof window === "undefined") return new Set();
-  try {
-    const raw = localStorage.getItem(seenKey(userId));
-    const ids = raw ? (JSON.parse(raw) as string[]) : [];
-    return new Set(ids);
-  } catch {
-    return new Set();
-  }
-}
-
-function writeSeen(userId: string, ids: Set<string>) {
-  localStorage.setItem(seenKey(userId), JSON.stringify([...ids]));
-}
 
 function timeAgo(iso: string): string {
   const mins = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
@@ -51,117 +28,23 @@ function timeAgo(iso: string): string {
   return `${days}d ago`;
 }
 
-function toNotifications(
-  userId: string,
-  connections: Connection[],
-  names: Record<string, string>,
-): AppNotification[] {
-  const items: AppNotification[] = [];
-
-  for (const connection of connections) {
-    const nameFor = (id: string) => names[id] || "Someone";
-
-    if (connection.recipientId === userId && connection.status === "pending") {
-      const actorId = connection.requesterId;
-      items.push({
-        id: `${connection.id}:request`,
-        kind: "request",
-        actorId,
-        actorName: nameFor(actorId),
-        message: `${nameFor(actorId)} sent you a chat request`,
-        href: "/dashboard/people",
-        at: connection.updatedAt || connection.createdAt,
-      });
-      continue;
-    }
-
-    if (connection.requesterId === userId && connection.status === "accepted") {
-      const actorId = connection.recipientId;
-      items.push({
-        id: `${connection.id}:accepted`,
-        kind: "accepted",
-        actorId,
-        actorName: nameFor(actorId),
-        message: `${nameFor(actorId)} accepted your request`,
-        href: `/dashboard/people/${actorId}`,
-        at: connection.updatedAt || connection.createdAt,
-      });
-      continue;
-    }
-
-    if (connection.requesterId === userId && connection.status === "declined") {
-      const actorId = connection.recipientId;
-      items.push({
-        id: `${connection.id}:declined`,
-        kind: "declined",
-        actorId,
-        actorName: nameFor(actorId),
-        message: `${nameFor(actorId)} declined your request`,
-        href: `/dashboard/people/${actorId}`,
-        at: connection.updatedAt || connection.createdAt,
-      });
-    }
-  }
-
-  return items.sort((a, b) => (a.at < b.at ? 1 : -1));
-}
-
 /**
- * Home header bell — connection requests, acceptances, and declines.
+ * Home header bell. Notification data lives in Redux and is loaded once
+ * for the whole dashboard.
  */
 export function NotificationBell() {
   const router = useRouter();
-  const { user, profile } = useAuth();
-  const userId = profile?.id || user?.id || "";
+  const dispatch = useAppDispatch();
+  const userId = useAppSelector(selectCurrentUserId);
+  const items = useAppSelector(selectNotifications);
+  const seenIds = useAppSelector(selectSeenNotificationIds);
+  const unread = useAppSelector(selectUnreadNotificationCount);
+  const status = useAppSelector(selectNotificationStatus);
+  const error = useAppSelector(selectNotificationError);
+  const seen = useMemo(() => new Set(seenIds), [seenIds]);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<AppNotification[]>([]);
-  const [seen, setSeen] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(false);
-
-  const refresh = useCallback(async () => {
-    if (!userId) {
-      setItems([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      const connections = await listConnectionsForAsync(userId);
-      const actorIds = [
-        ...new Set(
-          connections.flatMap((c) =>
-            c.requesterId === userId ? [c.recipientId] : [c.requesterId],
-          ),
-        ),
-      ];
-      const names: Record<string, string> = {};
-      if (actorIds.length > 0) {
-        const res = await fetch(
-          `/api/people?ids=${encodeURIComponent(actorIds.join(","))}`,
-          { cache: "no-store" },
-        );
-        if (res.ok) {
-          const data = (await res.json()) as { people?: PublicProfileDto[] };
-          for (const person of data.people || []) names[person.id] = person.name;
-        }
-      }
-      setItems(toNotifications(userId, connections, names));
-      setSeen(readSeen(userId));
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    void refresh();
-    const timer = window.setInterval(() => void refresh(), POLL_MS);
-    const onFocus = () => void refresh();
-    window.addEventListener("focus", onFocus);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [refresh]);
+  const loading = status === "loading" && items.length === 0;
 
   useEffect(() => {
     if (!open) return;
@@ -179,14 +62,8 @@ export function NotificationBell() {
     };
   }, [open]);
 
-  const unread = items.filter((item) => !seen.has(item.id)).length;
-
   function markSeen(ids: string[]) {
-    if (!userId || ids.length === 0) return;
-    const next = new Set(seen);
-    for (const id of ids) next.add(id);
-    writeSeen(userId, next);
-    setSeen(next);
+    dispatch(notificationsSeen(ids));
   }
 
   function onOpenItem(item: AppNotification) {
@@ -205,7 +82,7 @@ export function NotificationBell() {
         aria-haspopup="dialog"
         onClick={() => {
           setOpen((value) => !value);
-          void refresh();
+          if (userId) void dispatch(fetchNotifications({ userId, force: true }));
         }}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.icon}>
@@ -243,8 +120,10 @@ export function NotificationBell() {
               </button>
             ) : null}
           </div>
-          {loading && items.length === 0 ? (
+          {loading ? (
             <p className={styles.empty}>Loading notifications…</p>
+          ) : error && items.length === 0 ? (
+            <p className={styles.empty}>{error}</p>
           ) : items.length === 0 ? (
             <p className={styles.empty}>
               Chat requests, acceptances, and declines will show up here.

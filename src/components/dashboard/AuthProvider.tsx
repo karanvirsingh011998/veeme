@@ -1,72 +1,70 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, signOut, type AuthUser } from "@/lib/auth/auth";
-import { getProfile } from "@/lib/profile/service";
-import type { ProfileRow } from "@/types/database";
+import { getCurrentUser, signOut } from "@/lib/auth/auth";
+import { createClient } from "@/lib/supabase/client";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  selectAuthLoading,
+  selectAuthUser,
+} from "@/store/selectors/authSelectors";
+import { selectProfile } from "@/store/selectors/userSelectors";
+import { clientSessionCleared } from "@/store/sessionActions";
+import { initializeSession } from "@/store/slices/authSlice";
 
-type AuthContextValue = {
-  user: AuthUser | null;
-  profile: ProfileRow | null;
-  loading: boolean;
-  refresh: () => Promise<void>;
-  logout: () => Promise<void>;
-};
-
-const AuthContext = createContext<AuthContextValue | null>(null);
-
+/**
+ * Boots auth once and mirrors Supabase auth events into Redux.
+ * Screens read the same session through useAuth().
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [profile, setProfile] = useState<ProfileRow | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const refresh = useCallback(async () => {
-    const current = await getCurrentUser();
-    if (!current) {
-      setUser(null);
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-    setUser(current);
-    const row = await getProfile(current.id);
-    setProfile(row);
-    setLoading(false);
-  }, []);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    void dispatch(initializeSession());
+    const supabase = createClient();
+    if (!supabase) return;
 
-  const logout = useCallback(async () => {
-    await signOut();
-    setUser(null);
-    setProfile(null);
-    router.replace("/login");
-  }, [router]);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        void getCurrentUser().then((user) => {
+          if (!user) dispatch(clientSessionCleared());
+        });
+        return;
+      }
+      if (
+        event === "SIGNED_IN" ||
+        event === "USER_UPDATED" ||
+        event === "TOKEN_REFRESHED"
+      ) {
+        void dispatch(initializeSession());
+      }
+    });
 
-  const value = useMemo(
-    () => ({ user, profile, loading, refresh, logout }),
-    [user, profile, loading, refresh, logout],
-  );
+    return () => subscription.unsubscribe();
+  }, [dispatch]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <>{children}</>;
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return ctx;
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const user = useAppSelector(selectAuthUser);
+  const profile = useAppSelector(selectProfile);
+  const loading = useAppSelector(selectAuthLoading);
+
+  const refresh = useCallback(async () => {
+    await dispatch(initializeSession({ force: true }));
+  }, [dispatch]);
+
+  const logout = useCallback(async () => {
+    await signOut();
+    dispatch(clientSessionCleared());
+    router.replace("/login");
+  }, [dispatch, router]);
+
+  return { user, profile, loading, refresh, logout };
 }

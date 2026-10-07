@@ -3,16 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/dashboard/AuthProvider";
-import {
-  getConversationAsync,
-  listMessagesPage,
-  markConversationReadAsync,
-  sendMessage,
-  type ChatMessage,
-} from "@/lib/chat/service";
-import { getPublicProfileCardAsync } from "@/lib/people/service";
-import { useChatUnread } from "@/components/dashboard/chat/ChatUnreadProvider";
+import { type ChatMessage } from "@/lib/chat/service";
 import { ChatListSkeleton, SectionError } from "@/components/dashboard/ui/Skeletons";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  selectChatError,
+  selectHasMoreMessages,
+  selectLoadingOlder,
+  selectMessagesForConversation,
+  selectPeerName,
+  selectThreadLoading,
+} from "@/store/selectors/chatSelectors";
+import {
+  loadOlderMessages,
+  markOutgoingPending,
+  openConversation,
+  queueOutgoing,
+  sendOutgoingMessage,
+  setActiveConversation,
+} from "@/store/slices/chatSlice";
 import styles from "../social.module.css";
 
 type ChatThreadScreenProps = {
@@ -20,19 +29,22 @@ type ChatThreadScreenProps = {
 };
 
 /**
- * 1:1 messaging thread — composer stays pinned; only the message list scrolls.
+ * 1:1 messaging thread. Messages come from the Redux cache so a
+ * previously opened conversation renders before the network returns.
  */
 export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
+  const dispatch = useAppDispatch();
   const { user, profile } = useAuth();
-  const { refreshUnread } = useChatUnread();
   const userId = profile?.id || user?.id || "";
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [otherName, setOtherName] = useState("Chat");
+  const messages = useAppSelector((state) =>
+    selectMessagesForConversation(state, conversationId),
+  );
+  const loading = useAppSelector((state) => selectThreadLoading(state, conversationId));
+  const hasMore = useAppSelector((state) => selectHasMoreMessages(state, conversationId));
+  const loadingOlder = useAppSelector((state) => selectLoadingOlder(state, conversationId));
+  const otherName = useAppSelector((state) => selectPeerName(state, conversationId));
+  const error = useAppSelector(selectChatError);
   const [text, setText] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
-  const [loadingOlder, setLoadingOlder] = useState(false);
   const listRef = useRef<HTMLDivElement | null>(null);
   const stickToBottomRef = useRef(true);
 
@@ -45,87 +57,30 @@ export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
     });
   }
 
-  async function loadOlder() {
+  function loadOlder() {
     const oldest = messages.find((message) => !message.pending);
     if (!oldest || loadingOlder || !hasMore) return;
     const list = listRef.current;
     const previousHeight = list?.scrollHeight ?? 0;
-    setLoadingOlder(true);
-    try {
-      const page = await listMessagesPage(conversationId, {
-        before: oldest.createdAt,
-        limit: 40,
-      });
-      setHasMore(page.hasMore);
-      setMessages((current) => {
-        const ids = new Set(current.map((message) => message.id));
-        const older = page.messages.filter((message) => !ids.has(message.id));
-        return [...older, ...current];
-      });
+    void dispatch(
+      loadOlderMessages({ conversationId, before: oldest.createdAt }),
+    ).then(() => {
       requestAnimationFrame(() => {
         if (!list) return;
         list.scrollTop = list.scrollHeight - previousHeight;
       });
-    } finally {
-      setLoadingOlder(false);
-    }
+    });
   }
 
   useEffect(() => {
     if (!userId) return;
-    let cancelled = false;
     stickToBottomRef.current = true;
-    setLoading(true);
-
-    async function openThread() {
-      try {
-        const [conversation, page] = await Promise.all([
-          getConversationAsync(conversationId),
-          listMessagesPage(conversationId, { limit: 40 }),
-        ]);
-        if (cancelled) return;
-        setMessages(page.messages);
-        setHasMore(page.hasMore);
-        const otherId =
-          conversation?.participantIds.find((id) => id !== userId) || "";
-        if (otherId) {
-          const person = await getPublicProfileCardAsync(otherId, userId);
-          if (!cancelled) setOtherName(person?.name || "Member");
-        }
-        await markConversationReadAsync(conversationId, userId);
-        void refreshUnread();
-        setError(null);
-      } catch {
-        if (!cancelled) setError("Couldn't load this chat.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    void openThread();
-    const timer = window.setInterval(() => {
-      void listMessagesPage(conversationId, { limit: 40 }).then((page) => {
-        if (cancelled) return;
-        setHasMore(page.hasMore);
-        setMessages((current) => {
-          const pending = current.filter(
-            (message) => message.pending || message.failed,
-          );
-          return [
-            ...page.messages,
-            ...pending.filter(
-              (message) => !page.messages.some((item) => item.id === message.id),
-            ),
-          ];
-        });
-      });
-    }, 5000);
-
+    dispatch(setActiveConversation(conversationId));
+    void dispatch(openConversation({ conversationId, userId }));
     return () => {
-      cancelled = true;
-      window.clearInterval(timer);
+      dispatch(setActiveConversation(null));
     };
-  }, [conversationId, refreshUnread, userId]);
+  }, [conversationId, dispatch, userId]);
 
   useEffect(() => {
     if (!loading && stickToBottomRef.current) {
@@ -133,63 +88,35 @@ export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
     }
   }, [messages.length, loading]);
 
-  async function onSend(e: React.FormEvent) {
+  function onSend(e: React.FormEvent) {
     e.preventDefault();
     if (!userId) return;
     const body = text.trim();
     if (!body) return;
-    setError(null);
-    const tempId = `local-${Date.now()}`;
-    const optimistic: ChatMessage = {
-      id: tempId,
-      conversationId,
-      senderId: userId,
-      body,
-      createdAt: new Date().toISOString(),
-      readAt: null,
-      pending: true,
-    };
+    const tempId = `temp-${Date.now()}`;
     stickToBottomRef.current = true;
-    setMessages((current) => [...current, optimistic]);
-    setText("");
-    const result = await sendMessage(conversationId, userId, body);
-    if (!result.ok) {
-      setMessages((current) =>
-        current.map((message) =>
-          message.id === tempId
-            ? { ...message, pending: false, failed: true }
-            : message,
-        ),
-      );
-      setError(result.error);
-      return;
-    }
-    setMessages((current) =>
-      current.map((message) => (message.id === tempId ? result.message : message)),
+    dispatch(
+      queueOutgoing({
+        id: tempId,
+        conversationId,
+        senderId: userId,
+        body,
+        createdAt: new Date().toISOString(),
+      }),
     );
-    void refreshUnread();
+    setText("");
+    void dispatch(sendOutgoingMessage({ conversationId, userId, body, tempId }));
   }
 
-  async function retryMessage(message: ChatMessage) {
-    setMessages((current) =>
-      current.map((item) =>
-        item.id === message.id ? { ...item, pending: true, failed: false } : item,
-      ),
-    );
-    const result = await sendMessage(conversationId, userId, message.body);
-    if (!result.ok) {
-      setMessages((current) =>
-        current.map((item) =>
-          item.id === message.id
-            ? { ...item, pending: false, failed: true }
-            : item,
-        ),
-      );
-      setError(result.error);
-      return;
-    }
-    setMessages((current) =>
-      current.map((item) => (item.id === message.id ? result.message : item)),
+  function retryMessage(message: ChatMessage) {
+    dispatch(markOutgoingPending({ conversationId, id: message.id }));
+    void dispatch(
+      sendOutgoingMessage({
+        conversationId,
+        userId,
+        body: message.body,
+        tempId: message.id,
+      }),
     );
   }
 
@@ -210,7 +137,7 @@ export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
           if (!list) return;
           stickToBottomRef.current =
             list.scrollHeight - list.scrollTop - list.clientHeight < 80;
-          if (list.scrollTop < 40) void loadOlder();
+          if (list.scrollTop < 40) loadOlder();
         }}
       >
         {loading && messages.length === 0 ? (
@@ -218,15 +145,7 @@ export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
         ) : error && messages.length === 0 ? (
           <SectionError
             message={error}
-            onRetry={() => {
-              setLoading(true);
-              void listMessagesPage(conversationId, { limit: 40 }).then((page) => {
-                setMessages(page.messages);
-                setHasMore(page.hasMore);
-                setLoading(false);
-                setError(null);
-              });
-            }}
+            onRetry={() => void dispatch(openConversation({ conversationId, userId, force: true }))}
           />
         ) : messages.length === 0 ? (
           <p className={styles.sub}>
@@ -238,7 +157,7 @@ export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
               <button
                 type="button"
                 className={styles.sub}
-                onClick={() => void loadOlder()}
+                onClick={() => loadOlder()}
                 disabled={loadingOlder}
               >
                 {loadingOlder ? "Loading earlier messages…" : "Load earlier messages"}
@@ -263,7 +182,7 @@ export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
                           })}
                   </span>
                   {message.failed ? (
-                    <button type="button" onClick={() => void retryMessage(message)}>
+                    <button type="button" onClick={() => retryMessage(message)}>
                       Retry
                     </button>
                   ) : null}
@@ -274,7 +193,7 @@ export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
         )}
       </div>
 
-      <form className={styles.composer} onSubmit={(e) => void onSend(e)}>
+      <form className={styles.composer} onSubmit={(e) => onSend(e)}>
         <input
           className={styles.input}
           value={text}
@@ -286,7 +205,7 @@ export function ChatThreadScreen({ conversationId }: ChatThreadScreenProps) {
           Send
         </button>
       </form>
-      {error ? <p className={styles.error}>{error}</p> : null}
+      {error && messages.length > 0 ? <p className={styles.error}>{error}</p> : null}
     </div>
   );
 }

@@ -4,10 +4,15 @@ import { useEffect, useState } from "react";
 import {
   MANUAL_CITIES,
   readApproxLocation,
-  requestBrowserLocation,
-  saveApproxLocation,
   type ApproxLocation,
 } from "@/lib/location/geo";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectApproxLocation, selectLocationError, selectLocationStatus } from "@/store/selectors/sharedSelectors";
+import {
+  commitApproxLocation,
+  isStoredLocationStale,
+  requestDeviceLocation,
+} from "@/store/slices/locationSlice";
 import styles from "../social.module.css";
 
 type LocationPromptProps = {
@@ -15,46 +20,49 @@ type LocationPromptProps = {
 };
 
 /**
- * Permission-based location gate — never forced; GPS or manual city.
+ * Permission-based location gate. A saved location is reused from Redux
+ * instead of asking the browser again on every screen.
  */
 export function LocationPrompt({ onResolved }: LocationPromptProps) {
+  const dispatch = useAppDispatch();
+  const stored = useAppSelector(selectApproxLocation);
+  const status = useAppSelector(selectLocationStatus);
+  const locationError = useAppSelector(selectLocationError);
   const [open, setOpen] = useState(false);
   const [manual, setManual] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const busy = status === "loading";
 
   useEffect(() => {
-    const existing = readApproxLocation();
-    if (!existing || existing.source === "none") {
-      setOpen(true);
+    const existing = stored ?? readApproxLocation();
+    if (
+      existing &&
+      existing.source !== "none" &&
+      !isStoredLocationStale(existing.updatedAt, existing.source)
+    ) {
+      if (!stored) dispatch(commitApproxLocation(existing));
+      onResolved?.(existing);
       return;
     }
-    onResolved?.(existing);
-    // Intentionally run once on mount for first-relevant location prompt.
+    setOpen(true);
+    if (existing && isStoredLocationStale(existing.updatedAt, existing.source)) setManual(false);
+    // Ask once per mount. Later screens read the shared Redux location.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function allowGps() {
-    setBusy(true);
     setError(null);
-    const result = await requestBrowserLocation();
-    setBusy(false);
-    if (!result.ok) {
-      setError(result.error);
+    const result = await dispatch(requestDeviceLocation());
+    if (requestDeviceLocation.rejected.match(result)) {
+      const payload = result.payload as { error?: string } | undefined;
+      setError(payload?.error || locationError || "Location permission was not granted.");
       setManual(true);
       return;
     }
-    const loc: ApproxLocation = {
-      lat: result.lat,
-      lng: result.lng,
-      city: null,
-      area: null,
-      source: "gps",
-      updatedAt: new Date().toISOString(),
-    };
-    saveApproxLocation(loc);
-    onResolved?.(loc);
-    setOpen(false);
+    if (requestDeviceLocation.fulfilled.match(result)) {
+      onResolved?.(result.payload);
+      setOpen(false);
+    }
   }
 
   function chooseCity(city: (typeof MANUAL_CITIES)[number]) {
@@ -66,7 +74,7 @@ export function LocationPrompt({ onResolved }: LocationPromptProps) {
       source: "manual",
       updatedAt: new Date().toISOString(),
     };
-    saveApproxLocation(loc);
+    dispatch(commitApproxLocation(loc));
     onResolved?.(loc);
     setOpen(false);
   }

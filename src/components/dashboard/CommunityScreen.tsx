@@ -1,14 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { COMMUNITY_LIST } from "@/lib/dashboard/demo-data";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectCommunities } from "@/store/selectors/sharedSelectors";
+import { communitiesTouched } from "@/store/slices/communitiesSlice";
 import styles from "./app-ui.module.css";
 
 /**
  * Community directory — For You / My Communities / Events.
+ * The directory is cached in Redux so leaving and returning does not refetch it.
  */
 export function CommunityScreen() {
+  const dispatch = useAppDispatch();
+  const cached = useAppSelector(selectCommunities);
+  const communities = cached.length > 0 ? cached : COMMUNITY_LIST;
   const [tab, setTab] = useState("For You");
+
+  useEffect(() => {
+    dispatch(communitiesTouched());
+  }, [dispatch]);
 
   return (
     <div className={styles.page}>
@@ -41,7 +52,7 @@ export function CommunityScreen() {
             </p>
           </div>
         ) : (
-          COMMUNITY_LIST.map((community) => (
+          communities.map((community) => (
             <button key={community.name} type="button" className={styles.listBtn}>
               <span className={styles.listIcon} aria-hidden="true">
                 {community.icon}

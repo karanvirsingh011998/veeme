@@ -26,6 +26,10 @@ import {
 import { getOrCreateDirectConversation } from "@/lib/chat/service";
 import { readApproxLocation } from "@/lib/location/geo";
 import { ScreenLoading } from "@/components/dashboard/ui/ScreenLoading";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectPlanById } from "@/store/selectors/planSelectors";
+import { selectApproxLocation } from "@/store/selectors/sharedSelectors";
+import { markJoined, selectPlan, upsertPlans } from "@/store/slices/plansSlice";
 import styles from "../social.module.css";
 
 type PlanDetailScreenProps = {
@@ -39,45 +43,59 @@ export function PlanDetailScreen({ planId }: PlanDetailScreenProps) {
   const { user, profile } = useAuth();
   const router = useRouter();
   const userId = profile?.id || user?.id || "";
-  const [plan, setPlan] = useState<PlanWithMeta | null>(null);
+  const dispatch = useAppDispatch();
+  const cached = useAppSelector((state) => selectPlanById(state, planId));
+  const storedLocation = useAppSelector(selectApproxLocation);
+  const [plan, setPlan] = useState<PlanWithMeta | null>(cached ?? null);
   const [members, setMembers] = useState<PlanMember[]>([]);
   const [memberCities, setMemberCities] = useState<Record<string, string>>({});
-  const [joined, setJoined] = useState(false);
+  const [joined, setJoined] = useState(Boolean(cached?.viewerJoined));
   const [busy, setBusy] = useState(false);
   const [chatBusyId, setChatBusyId] = useState<string | null>(null);
   const [connectBusyId, setConnectBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cached);
   const [connections, setConnections] = useState<Connection[]>([]);
 
   const isOwner = Boolean(plan && userId && plan.creatorId === userId);
 
   useEffect(() => {
+    dispatch(selectPlan(planId));
+    let cancelled = false;
+    const showSkeleton = !cached;
+
     async function load() {
-      setLoading(true);
-      const loc = readApproxLocation();
+      if (showSkeleton) setLoading(true);
+      const loc = storedLocation ?? readApproxLocation();
       const base = await getPlan(planId, { userLocation: loc });
+      if (cancelled) return;
       if (!base) {
-        setPlan(null);
+        if (showSkeleton) setPlan(null);
         setLoading(false);
         return;
       }
       const creators = await buildCreatorMapAsync([base.creatorId]);
+      if (cancelled) return;
       const enriched = await getPlan(planId, { userLocation: loc, creators });
-      setPlan(enriched);
+      if (cancelled) return;
+      const nextPlan = enriched ?? base;
+      setPlan(nextPlan);
+      dispatch(upsertPlans([nextPlan]));
       const planMembers = await listPlanMembers(planId);
+      if (cancelled) return;
       setMembers(planMembers);
       const cities: Record<string, string> = {};
       await Promise.all(
-        planMembers.map(async (m) => {
-          const card = await getPublicProfileCardAsync(m.userId, userId);
-          if (card?.city) cities[m.userId] = card.city;
+        planMembers.map(async (member) => {
+          const card = await getPublicProfileCardAsync(member.userId, userId);
+          if (card?.city) cities[member.userId] = card.city;
         }),
       );
+      if (cancelled) return;
       setMemberCities(cities);
       if (userId) {
         setConnections(await listConnectionsForAsync(userId));
-        if (enriched?.creatorId === userId) {
+        if (nextPlan.creatorId === userId) {
           setJoined(true);
         } else {
           const part = await getParticipantAsync(planId, userId);
@@ -86,8 +104,14 @@ export function PlanDetailScreen({ planId }: PlanDetailScreenProps) {
       }
       setLoading(false);
     }
+
     void load();
-  }, [planId, userId]);
+    return () => {
+      cancelled = true;
+    };
+    // `cached` is only the first paint. Depending on it would refetch after upsert.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, planId, storedLocation, userId]);
 
   async function onJoin() {
     if (!userId || !plan || isOwner) return;
@@ -100,6 +124,7 @@ export function PlanDetailScreen({ planId }: PlanDetailScreenProps) {
       return;
     }
     setJoined(true);
+    dispatch(markJoined({ planId: plan.id, joined: true }));
     setMembers(await listPlanMembers(planId));
   }
 

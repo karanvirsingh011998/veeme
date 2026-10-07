@@ -3,22 +3,19 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/dashboard/AuthProvider";
-import { listUserPlansAsync } from "@/lib/plans/service";
-import { listAcceptedForAsync } from "@/lib/connections/service";
-import {
-  MANUAL_CITIES,
-  readApproxLocation,
-  saveApproxLocation,
-} from "@/lib/location/geo";
+import { MANUAL_CITIES } from "@/lib/location/geo";
 import { updateProfile } from "@/lib/profile/service";
 import { ScreenLoading } from "@/components/dashboard/ui/ScreenLoading";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { commitApproxLocation } from "@/store/slices/locationSlice";
+import { fetchProfileStats, profileLoaded } from "@/store/slices/userSlice";
 import styles from "./ProfileScreen.module.css";
 
 /**
  * Own profile — polished activity-focused layout.
  */
 export function ProfileScreen() {
-  const { user, profile, logout, refresh } = useAuth();
+  const { user, profile, logout } = useAuth();
   const userId = profile?.id || user?.id || "";
   const firstName = profile?.first_name || user?.firstName || "";
   const lastName = profile?.last_name || user?.lastName || "";
@@ -26,65 +23,53 @@ export function ProfileScreen() {
     [firstName, lastName].filter(Boolean).join(" ") || "Vemee member";
   const initial = (displayName[0] || "V").toUpperCase();
 
-  const [createdCount, setCreatedCount] = useState(0);
-  const [joinedCount, setJoinedCount] = useState(0);
-  const [connectionCount, setConnectionCount] = useState(0);
+  const dispatch = useAppDispatch();
+  const createdCount = useAppSelector((state) => state.user.createdCount);
+  const joinedCount = useAppSelector((state) => state.user.joinedCount);
+  const connectionCount = useAppSelector((state) => state.user.connectionCount);
+  const statsStatus = useAppSelector((state) => state.user.statsStatus);
+  const locationCity = useAppSelector((state) => state.location.city);
   const [city, setCity] = useState("");
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [loadingStats, setLoadingStats] = useState(true);
+  const loadingStats = statsStatus === "idle" || statsStatus === "loading";
 
   useEffect(() => {
     setBio(profile?.bio || "");
-    const loc = readApproxLocation();
-    setCity(profile?.city || loc?.city || "");
-  }, [profile?.bio, profile?.city]);
+    setCity(profile?.city || locationCity || "");
+  }, [locationCity, profile?.bio, profile?.city]);
 
   useEffect(() => {
     if (!userId) return;
-    let cancelled = false;
-    void (async () => {
-      setLoadingStats(true);
-      try {
-        const [{ created, joined }, accepted] = await Promise.all([
-          listUserPlansAsync(userId),
-          listAcceptedForAsync(userId),
-        ]);
-        if (cancelled) return;
-        setCreatedCount(created.length);
-        setJoinedCount(joined.length);
-        setConnectionCount(accepted.length);
-      } finally {
-        if (!cancelled) setLoadingStats(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+    void dispatch(fetchProfileStats(userId));
+  }, [dispatch, userId]);
 
   async function saveBasics() {
     if (!userId) return;
     setSaving(true);
     setSaved(false);
-    await updateProfile(userId, { bio, city });
+    const result = await updateProfile(userId, { bio, city });
     const match = MANUAL_CITIES.find((c) => c.city === city);
     if (match) {
-      saveApproxLocation({
-        lat: match.lat,
-        lng: match.lng,
-        city: match.city,
-        area: match.area,
-        source: "manual",
-        updatedAt: new Date().toISOString(),
-      });
+      dispatch(
+        commitApproxLocation({
+          lat: match.lat,
+          lng: match.lng,
+          city: match.city,
+          area: match.area,
+          source: "manual",
+          updatedAt: new Date().toISOString(),
+        }),
+      );
     }
-    await refresh();
+    if (result.ok) {
+      dispatch(profileLoaded(result.profile));
+      setSaved(true);
+      setEditing(false);
+    }
     setSaving(false);
-    setSaved(true);
-    setEditing(false);
   }
 
   const cityLabel =

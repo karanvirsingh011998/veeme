@@ -1,97 +1,59 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/dashboard/AuthProvider";
-import {
-  listConversationSummariesAsync,
-  type ConversationSummary,
-} from "@/lib/chat/service";
-import { buildCreatorMapAsync } from "@/lib/people/service";
 import { useChatUnread } from "@/components/dashboard/chat/ChatUnreadProvider";
 import { ChatListSkeleton, SectionError } from "@/components/dashboard/ui/Skeletons";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  selectConversations,
+  selectConversationsStatus,
+  selectParticipantNames,
+} from "@/store/selectors/chatSelectors";
+import { fetchConversations } from "@/store/slices/chatSlice";
 import styles from "../social.module.css";
 import ui from "../app-ui.module.css";
-
-type InboxRow = {
-  conversation: ConversationSummary;
-  name: string;
-  preview: string;
-  time: string;
-  unread: number;
-};
 
 /**
  * 1:1 chat inbox — shows unread message counts per chat + polls for updates.
  */
 export function ChatInboxScreen() {
+  const dispatch = useAppDispatch();
   const { user, profile } = useAuth();
   const userId = profile?.id || user?.id || "";
-  const { unreadTotal, unreadChats, refreshUnread } = useChatUnread();
-  const [rows, setRows] = useState<InboxRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const hasRowsRef = useRef(false);
-
-  const load = useCallback(
-    async (isInitial = false) => {
-      if (!userId) return;
-      if (isInitial && !hasRowsRef.current) setLoading(true);
-      try {
-        const conversations = await listConversationSummariesAsync(userId);
-        const names = await buildCreatorMapAsync(
-          conversations.map(
-            (conversation) =>
-              conversation.participantIds.find((id) => id !== userId) || "",
-          ),
-        );
-        const next: InboxRow[] = [];
-        for (const conversation of conversations) {
-          const otherId =
-            conversation.participantIds.find((id) => id !== userId) || "";
-          const last = conversation.lastMessage;
-          next.push({
-            conversation,
-            name: names.get(otherId)?.name || "Member",
-            preview: last?.body || "No messages yet",
-            time: last
-              ? new Date(last.createdAt).toLocaleTimeString([], {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })
-              : "",
-            unread: conversation.unreadCount,
-          });
-        }
-        // Unread chats first, then recent activity.
-        next.sort((a, b) => {
-          if (a.unread !== b.unread) return b.unread - a.unread;
-          return b.conversation.updatedAt.localeCompare(a.conversation.updatedAt);
-        });
-        setRows(next);
-        hasRowsRef.current = next.length > 0;
-        setError(null);
-        void refreshUnread();
-      } catch {
-        setError("Couldn't load chats.");
-      } finally {
-        if (isInitial) setLoading(false);
-      }
-    },
-    [userId, refreshUnread],
-  );
+  const { unreadTotal, unreadChats } = useChatUnread();
+  const conversations = useAppSelector(selectConversations);
+  const names = useAppSelector(selectParticipantNames);
+  const status = useAppSelector(selectConversationsStatus);
+  const loading = status !== "succeeded" && status !== "failed" && conversations.length === 0;
 
   useEffect(() => {
     if (!userId) return;
-    void load(true);
-    const timer = window.setInterval(() => void load(false), 15000);
-    const onFocus = () => void load(false);
-    window.addEventListener("focus", onFocus);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [userId, load]);
+    void dispatch(fetchConversations({ userId }));
+  }, [dispatch, userId]);
+
+  const rows = conversations
+    .map((conversation) => {
+      const otherId = conversation.participantIds.find((id) => id !== userId) || "";
+      const last = conversation.lastMessage;
+      return {
+        conversation,
+        name: names[otherId] || "Member",
+        preview: last?.body || "No messages yet",
+        time: last
+          ? new Date(last.createdAt).toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            })
+          : "",
+        unread: conversation.unreadCount,
+      };
+    })
+    .sort((a, b) => {
+      if (a.unread !== b.unread) return b.unread - a.unread;
+      return b.conversation.updatedAt.localeCompare(a.conversation.updatedAt);
+    });
 
   return (
     <div className={ui.page}>
@@ -113,8 +75,11 @@ export function ChatInboxScreen() {
       <div className={ui.content}>
         {loading && rows.length === 0 ? (
           <ChatListSkeleton />
-        ) : error && rows.length === 0 ? (
-          <SectionError message={error} onRetry={() => void load(true)} />
+        ) : status === "failed" && rows.length === 0 ? (
+          <SectionError
+            message="Couldn't load chats."
+            onRetry={() => void dispatch(fetchConversations({ userId, force: true }))}
+          />
         ) : rows.length === 0 ? (
           <div className={styles.empty}>
             <h3>Your conversations will appear here.</h3>

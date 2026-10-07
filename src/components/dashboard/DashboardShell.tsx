@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/dashboard/BottomNav";
 import { DesktopSidebar } from "@/components/dashboard/DesktopSidebar";
 import { DevModeBadge } from "@/components/dashboard/DevModeBadge";
 import { ChatUnreadProvider } from "@/components/dashboard/chat/ChatUnreadProvider";
+import { ChatLiveSync, NotificationSync } from "@/store/LiveSync";
 import { SplashScreen } from "@/components/ui/SplashScreen";
 import styles from "./DashboardShell.module.css";
 
@@ -62,6 +63,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <AuthProvider>
       <Guard>
         <ChatUnreadProvider>
+          <ChatLiveSync />
+          <NotificationSync />
           <ShellFrame>{children}</ShellFrame>
         </ChatUnreadProvider>
       </Guard>

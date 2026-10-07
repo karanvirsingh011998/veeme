@@ -1,52 +1,33 @@
 "use client";
 
+import { useCallback, useEffect, type ReactNode } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectAuthLoading } from "@/store/selectors/authSelectors";
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import { useAuth } from "@/components/dashboard/AuthProvider";
-import { listConversationSummariesAsync } from "@/lib/chat/service";
-
-type ChatUnreadContextValue = {
-  /** Total unread messages across all chats */
-  unreadTotal: number;
-  /** Conversations with at least one unread message */
-  unreadChats: number;
-  refreshUnread: () => Promise<void>;
-};
-
-const ChatUnreadContext = createContext<ChatUnreadContextValue | null>(null);
+  selectUnreadChats,
+  selectUnreadTotal,
+} from "@/store/selectors/chatSelectors";
+import { selectCurrentUserId } from "@/store/selectors/userSelectors";
+import { fetchConversations } from "@/store/slices/chatSlice";
 
 const POLL_MS = 15000;
 
 /**
- * Polls unread chat counts app-wide so nav badges update without a full refresh.
+ * Keeps inbox unread counts in Redux so the sidebar and inbox share one fetch.
  */
 export function ChatUnreadProvider({ children }: { children: ReactNode }) {
-  const { user, profile, loading } = useAuth();
-  const userId = profile?.id || user?.id || "";
-  const [unreadTotal, setUnreadTotal] = useState(0);
-  const [unreadChats, setUnreadChats] = useState(0);
+  const dispatch = useAppDispatch();
+  const loading = useAppSelector(selectAuthLoading);
+  const userId = useAppSelector(selectCurrentUserId);
 
   const refreshUnread = useCallback(async () => {
-    if (!userId) {
-      setUnreadTotal(0);
-      setUnreadChats(0);
-      return;
-    }
-    const summaries = await listConversationSummariesAsync(userId);
-    setUnreadTotal(summaries.reduce((sum, c) => sum + c.unreadCount, 0));
-    setUnreadChats(summaries.filter((c) => c.unreadCount > 0).length);
-  }, [userId]);
+    if (!userId) return;
+    await dispatch(fetchConversations({ userId, force: true }));
+  }, [dispatch, userId]);
 
   useEffect(() => {
     if (loading || !userId) return;
-    void refreshUnread();
+    void dispatch(fetchConversations({ userId }));
     const timer = window.setInterval(() => void refreshUnread(), POLL_MS);
     const onFocus = () => void refreshUnread();
     const onVisible = () => {
@@ -59,28 +40,21 @@ export function ChatUnreadProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [loading, userId, refreshUnread]);
+  }, [dispatch, loading, refreshUnread, userId]);
 
-  const value = useMemo(
-    () => ({ unreadTotal, unreadChats, refreshUnread }),
-    [unreadTotal, unreadChats, refreshUnread],
-  );
-
-  return (
-    <ChatUnreadContext.Provider value={value}>
-      {children}
-    </ChatUnreadContext.Provider>
-  );
+  return <>{children}</>;
 }
 
 export function useChatUnread() {
-  const ctx = useContext(ChatUnreadContext);
-  if (!ctx) {
-    return {
-      unreadTotal: 0,
-      unreadChats: 0,
-      refreshUnread: async () => undefined,
-    };
-  }
-  return ctx;
+  const dispatch = useAppDispatch();
+  const userId = useAppSelector(selectCurrentUserId);
+  const unreadTotal = useAppSelector(selectUnreadTotal);
+  const unreadChats = useAppSelector(selectUnreadChats);
+
+  const refreshUnread = useCallback(async () => {
+    if (!userId) return;
+    await dispatch(fetchConversations({ userId, force: true }));
+  }, [dispatch, userId]);
+
+  return { unreadTotal, unreadChats, refreshUnread };
 }

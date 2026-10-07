@@ -1,126 +1,89 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import { PlanCard } from "@/components/dashboard/plans/PlanCard";
 import { LocationPrompt } from "@/components/dashboard/location/LocationPrompt";
 import { PLAN_CATEGORIES, type PlanFilters } from "@/lib/plans/types";
-import {
-  joinPlan,
-  listPlansPage,
-  type PlanWithMeta,
-} from "@/lib/plans/service";
-import { buildCreatorMapAsync } from "@/lib/people/service";
-import {
-  readApproxLocation,
-  type ApproxLocation,
-} from "@/lib/location/geo";
+import { readApproxLocation } from "@/lib/location/geo";
 import {
   PlanCardSkeleton,
   SectionError,
 } from "@/components/dashboard/ui/Skeletons";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  selectExploreFilters,
+  selectExploreLoadingMore,
+  selectExploreOffset,
+  selectExplorePlans,
+  selectExplorePlansError,
+  selectExplorePlansStatus,
+  selectHasMorePlans,
+  selectJoinedMap,
+} from "@/store/selectors/planSelectors";
+import { selectApproxLocation } from "@/store/selectors/sharedSelectors";
+import {
+  fetchExplorePlans,
+  joinPlanOptimistic,
+  setExploreFilters,
+} from "@/store/slices/plansSlice";
 import styles from "../social.module.css";
 
 /**
  * Explore Plans — filters + real plan cards (empty state when none).
  */
 export function ExplorePlansScreen() {
+  const dispatch = useAppDispatch();
   const { user, profile } = useAuth();
   const userId = profile?.id || user?.id || "";
-  const [location, setLocation] = useState<ApproxLocation | null>(null);
-  const [plans, setPlans] = useState<PlanWithMeta[]>([]);
-  const [joined, setJoined] = useState<Record<string, boolean>>({});
+  const storedLocation = useAppSelector(selectApproxLocation);
+  const plans = useAppSelector(selectExplorePlans);
+  const joined = useAppSelector(selectJoinedMap);
+  const filters = useAppSelector(selectExploreFilters);
+  const status = useAppSelector(selectExplorePlansStatus);
+  const loadingMore = useAppSelector(selectExploreLoadingMore);
+  const hasMore = useAppSelector(selectHasMorePlans);
+  const offset = useAppSelector(selectExploreOffset);
+  const loadError = useAppSelector(selectExplorePlansError);
   const [joiningId, setJoiningId] = useState<string | null>(null);
-  const [filters, setFilters] = useState<PlanFilters>({
-    category: "all",
-    datePreset: "all",
-    distanceKm: "all",
-    availability: "all",
-  });
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const pageRef = useRef(0);
-  const filterKeyRef = useRef("");
-
-  const loadPage = useCallback(
-    async (offset: number, append: boolean) => {
-      const nextKey = JSON.stringify({
-        filters,
-        location: location?.city,
-        userId,
-      });
-      const filtersChanged = filterKeyRef.current !== nextKey;
-      if (!append && filtersChanged && filterKeyRef.current) {
-        setPlans([]);
-        setLoading(true);
-      } else if (!append && !filterKeyRef.current) {
-        setLoading(true);
-      }
-      if (append) setLoadingMore(true);
-      try {
-        const loc = location || readApproxLocation();
-        const page = await listPlansPage(filters, {
-          userLocation: loc,
-          viewerId: userId,
-          limit: 20,
-          offset,
-        });
-        const creators = await buildCreatorMapAsync(
-          page.plans.map((plan) => plan.creatorId),
-        );
-        const named = page.plans.map((plan) => {
-          const creator = creators.get(plan.creatorId);
-          return creator
-            ? { ...plan, creatorName: creator.name, creatorAvatar: creator.avatar }
-            : plan;
-        });
-        setPlans((current) => (append ? [...current, ...named] : named));
-        setJoined((current) => {
-          const next = append ? { ...current } : {};
-          for (const plan of named) next[plan.id] = Boolean(plan.viewerJoined);
-          return next;
-        });
-        setHasMore(page.hasMore);
-        pageRef.current = offset;
-        filterKeyRef.current = nextKey;
-        setError(null);
-      } catch {
-        setError("Couldn't load plans.");
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [filters, location, userId],
-  );
-
-  const refresh = useCallback(async () => {
-    pageRef.current = 0;
-    await loadPage(0, false);
-  }, [loadPage]);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const loading = (status === "idle" || status === "loading") && plans.length === 0;
+  const error = actionError || loadError;
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    if (!userId) return;
+    const loc = storedLocation ?? readApproxLocation();
+    void dispatch(
+      fetchExplorePlans({
+        userId,
+        location: loc,
+        filters,
+        offset: 0,
+        append: false,
+      }),
+    );
+  }, [dispatch, filters, storedLocation, userId]);
+
+  function updateFilters(next: PlanFilters) {
+    setActionError(null);
+    dispatch(setExploreFilters(next));
+  }
 
   async function onJoin(planId: string) {
     if (!userId) return;
     setJoiningId(planId);
-    setJoined((prev) => ({ ...prev, [planId]: true }));
-    const result = await joinPlan(planId, userId);
+    setActionError(null);
+    const result = await dispatch(joinPlanOptimistic({ planId, userId }));
     setJoiningId(null);
-    if (!result.ok) {
-      setJoined((prev) => ({ ...prev, [planId]: false }));
-      setError(result.error);
+    if (joinPlanOptimistic.rejected.match(result)) {
+      setActionError(result.error.message || "Could not join.");
     }
   }
 
   return (
     <div className={styles.page}>
-      <LocationPrompt onResolved={setLocation} />
+      <LocationPrompt />
       <div className={styles.headerRow}>
         <div>
           <h1 className={styles.title}>Explore Plans</h1>
@@ -143,7 +106,7 @@ export function ExplorePlansScreen() {
             role="tab"
             aria-selected={filters.category === "all"}
             className={`${styles.filterChip} ${filters.category === "all" ? styles.filterChipActive : ""}`}
-            onClick={() => setFilters((f) => ({ ...f, category: "all" }))}
+            onClick={() => updateFilters({ ...filters, category: "all" })}
           >
             All
           </button>
@@ -154,7 +117,7 @@ export function ExplorePlansScreen() {
               role="tab"
               aria-selected={filters.category === c.id}
               className={`${styles.filterChip} ${filters.category === c.id ? styles.filterChipActive : ""}`}
-              onClick={() => setFilters((f) => ({ ...f, category: c.id }))}
+              onClick={() => updateFilters({ ...filters, category: c.id })}
             >
               <span aria-hidden="true">{c.icon}</span>
               {c.label}
@@ -169,10 +132,10 @@ export function ExplorePlansScreen() {
               className={styles.filterSelect}
               value={filters.datePreset}
               onChange={(event) =>
-                setFilters((f) => ({
-                  ...f,
+                updateFilters({
+                  ...filters,
                   datePreset: event.target.value as PlanFilters["datePreset"],
-                }))
+                })
               }
             >
               <option value="all">Any day</option>
@@ -187,10 +150,10 @@ export function ExplorePlansScreen() {
               className={styles.filterSelect}
               value={filters.distanceKm}
               onChange={(event) =>
-                setFilters((f) => ({
-                  ...f,
+                updateFilters({
+                  ...filters,
                   distanceKm: event.target.value as PlanFilters["distanceKm"],
-                }))
+                })
               }
             >
               <option value="all">Any distance</option>
@@ -206,7 +169,22 @@ export function ExplorePlansScreen() {
       {loading && plans.length === 0 ? (
         <PlanCardSkeleton count={3} />
       ) : error && plans.length === 0 ? (
-        <SectionError message={error} onRetry={() => void refresh()} />
+        <SectionError
+          message={error}
+          onRetry={() => {
+            const loc = storedLocation ?? readApproxLocation();
+            void dispatch(
+              fetchExplorePlans({
+                userId,
+                location: loc,
+                filters,
+                offset: 0,
+                append: false,
+                force: true,
+              }),
+            );
+          }}
+        />
       ) : plans.length === 0 ? (
         <div className={styles.empty}>
           <h3>No plans nearby</h3>
@@ -243,7 +221,18 @@ export function ExplorePlansScreen() {
             type="button"
             className={`${styles.btn} ${styles.btnSecondary}`}
             disabled={loadingMore}
-            onClick={() => void loadPage(pageRef.current + 20, true)}
+            onClick={() => {
+              const loc = storedLocation ?? readApproxLocation();
+              void dispatch(
+                fetchExplorePlans({
+                  userId,
+                  location: loc,
+                  filters,
+                  offset: offset + 20,
+                  append: true,
+                }),
+              );
+            }}
           >
             {loadingMore ? "Loading…" : "Load more"}
           </button>

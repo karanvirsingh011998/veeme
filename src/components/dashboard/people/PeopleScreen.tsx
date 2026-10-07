@@ -1,21 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/dashboard/AuthProvider";
-import {
-  buildCreatorMapAsync,
-  listPeopleYouMayConnectWith,
-  type PeopleCard,
-} from "@/lib/people/service";
-import {
-  listAcceptedForAsync,
-  listPendingForAsync,
-  respondToConnection,
-  sendConnectRequest,
-  type Connection,
-} from "@/lib/connections/service";
+import { respondToConnection, sendConnectRequest } from "@/lib/connections/service";
 import { getOrCreateDirectConversation } from "@/lib/chat/service";
 import { readApproxLocation } from "@/lib/location/geo";
 import { LocationPrompt } from "@/components/dashboard/location/LocationPrompt";
@@ -23,6 +12,22 @@ import {
   SectionError,
   UserCardSkeleton,
 } from "@/components/dashboard/ui/Skeletons";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  selectAcceptedConnections,
+  selectApproxLocation,
+  selectConnectionNames,
+  selectConnectionsStatus,
+  selectPendingConnections,
+  selectPeople,
+  selectPeopleError,
+  selectPeopleStatus,
+} from "@/store/selectors/sharedSelectors";
+import {
+  fetchPeopleCards,
+  fetchPeopleConnections,
+  setPersonConnection,
+} from "@/store/slices/peopleSlice";
 import styles from "../social.module.css";
 
 /**
@@ -30,83 +35,51 @@ import styles from "../social.module.css";
  * Incoming requests appear at the top (Accept / Decline → then Chat).
  */
 export function PeopleScreen() {
+  const dispatch = useAppDispatch();
   const { user, profile } = useAuth();
   const router = useRouter();
   const userId = profile?.id || user?.id || "";
-  const [people, setPeople] = useState<PeopleCard[]>([]);
-  const [pending, setPending] = useState<Connection[]>([]);
-  const [accepted, setAccepted] = useState<Connection[]>([]);
-  const [names, setNames] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const storedLocation = useAppSelector(selectApproxLocation);
+  const people = useAppSelector(selectPeople);
+  const pending = useAppSelector(selectPendingConnections);
+  const accepted = useAppSelector(selectAcceptedConnections);
+  const names = useAppSelector(selectConnectionNames);
+  const peopleStatus = useAppSelector(selectPeopleStatus);
+  const connectionsStatus = useAppSelector(selectConnectionsStatus);
+  const error = useAppSelector(selectPeopleError);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const hasLoadedRef = useRef(false);
-
-  const refresh = useCallback(async () => {
-    if (!userId) return;
-    if (!hasLoadedRef.current) setLoading(true);
-    try {
-      const loc = readApproxLocation();
-      const [cards, pendingReqs, acceptedRows] = await Promise.all([
-        listPeopleYouMayConnectWith(userId, {
-          userLocation: loc,
-          currentInterests: [],
-        }),
-        listPendingForAsync(userId),
-        listAcceptedForAsync(userId),
-      ]);
-      setPeople(cards);
-      setPending(pendingReqs);
-      setAccepted(acceptedRows);
-
-      const ids = new Set<string>();
-      for (const req of pendingReqs) ids.add(req.requesterId);
-      for (const row of acceptedRows) {
-        ids.add(row.requesterId === userId ? row.recipientId : row.requesterId);
-      }
-      const creators = await buildCreatorMapAsync([...ids]);
-      const nextNames: Record<string, string> = {};
-      for (const id of ids) {
-        nextNames[id] = creators.get(id)?.name || "a member";
-      }
-      setNames(nextNames);
-      setError(null);
-    } catch {
-      setError("Couldn't load people.");
-    } finally {
-      hasLoadedRef.current = true;
-      setLoading(false);
-    }
-  }, [userId]);
+  const loading =
+    people.length === 0 &&
+    pending.length === 0 &&
+    peopleStatus !== "failed" &&
+    connectionsStatus !== "failed" &&
+    (peopleStatus !== "succeeded" || connectionsStatus !== "succeeded");
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    if (!userId) return;
+    const loc = storedLocation ?? readApproxLocation();
+    void dispatch(fetchPeopleCards({ userId, location: loc }));
+    void dispatch(fetchPeopleConnections({ userId, location: loc }));
+  }, [dispatch, storedLocation, userId]);
+
+  function retry() {
+    const loc = storedLocation ?? readApproxLocation();
+    void dispatch(fetchPeopleCards({ userId, location: loc, force: true }));
+    void dispatch(fetchPeopleConnections({ userId, location: loc, force: true }));
+  }
 
   async function onConnect(personId: string) {
     if (!userId) return;
     setBusyId(personId);
-    setPeople((current) =>
-      current.map((person) =>
-        person.id === personId
-          ? { ...person, connectionStatus: "pending_sent" }
-          : person,
-      ),
-    );
+    dispatch(setPersonConnection({ id: personId, status: "pending_sent" }));
     const result = await sendConnectRequest(userId, personId);
     setBusyId(null);
     if (!result.ok) {
-      setPeople((current) =>
-        current.map((person) =>
-          person.id === personId
-            ? { ...person, connectionStatus: "none" }
-            : person,
-        ),
-      );
-      setError(result.error);
+      dispatch(setPersonConnection({ id: personId, status: "none" }));
       return;
     }
-    void refresh();
+    const loc = storedLocation ?? readApproxLocation();
+    void dispatch(fetchPeopleConnections({ userId, location: loc, force: true }));
   }
 
   async function onRespond(connectionId: string, accept: boolean, otherId: string) {
@@ -114,13 +87,13 @@ export function PeopleScreen() {
     setBusyId(connectionId);
     const result = await respondToConnection(connectionId, userId, accept);
     setBusyId(null);
+    const loc = storedLocation ?? readApproxLocation();
+    await dispatch(fetchPeopleConnections({ userId, location: loc, force: true }));
+    await dispatch(fetchPeopleCards({ userId, location: loc, force: true }));
     if (result.ok && accept) {
       const conversation = await getOrCreateDirectConversation(userId, otherId);
-      await refresh();
       router.push(`/dashboard/chat/${conversation.id}`);
-      return;
     }
-    void refresh();
   }
 
   async function onChat(personId: string) {
@@ -144,7 +117,9 @@ export function PeopleScreen() {
       {loading && people.length === 0 && pending.length === 0 ? (
         <UserCardSkeleton count={4} />
       ) : null}
-      {error ? <SectionError message={error} onRetry={() => void refresh()} /> : null}
+      {error && people.length === 0 && pending.length === 0 ? (
+        <SectionError message={error} onRetry={retry} />
+      ) : null}
 
       {!loading && pending.length > 0 ? (
         <>

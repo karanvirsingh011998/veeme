@@ -1,31 +1,34 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import { LocationPrompt } from "@/components/dashboard/location/LocationPrompt";
 import { PlanCard } from "@/components/dashboard/plans/PlanCard";
-import {
-  joinPlan,
-  listPlansPage,
-  type PlanWithMeta,
-} from "@/lib/plans/service";
-import {
-  buildCreatorMapAsync,
-  listPeopleYouMayConnectWith,
-  type PeopleCard,
-} from "@/lib/people/service";
 import { greetingLabel } from "@/lib/dashboard/demo-data";
-import {
-  readApproxLocation,
-  type ApproxLocation,
-} from "@/lib/location/geo";
+import { readApproxLocation } from "@/lib/location/geo";
 import { NotificationBell } from "@/components/dashboard/notifications/NotificationBell";
 import {
   PlanCardSkeleton,
   SectionError,
   UserCardSkeleton,
 } from "@/components/dashboard/ui/Skeletons";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  selectHomePlans,
+  selectHomePlansError,
+  selectHomePlansStatus,
+  selectHomeUpcoming,
+  selectJoinedMap,
+} from "@/store/selectors/planSelectors";
+import {
+  selectApproxLocation,
+  selectPeopleError,
+  selectPeoplePreview,
+  selectPeopleStatus,
+} from "@/store/selectors/sharedSelectors";
+import { fetchHomePlans, joinPlanOptimistic } from "@/store/slices/plansSlice";
+import { fetchPeopleCards } from "@/store/slices/peopleSlice";
 import styles from "./social.module.css";
 import ui from "./app-ui.module.css";
 
@@ -33,86 +36,39 @@ import ui from "./app-ui.module.css";
  * Personalized home — plans near you, people, upcoming plans.
  */
 export function HomeScreen() {
+  const dispatch = useAppDispatch();
   const { user, profile } = useAuth();
   const userId = profile?.id || user?.id || "";
   const firstName =
     profile?.first_name?.trim() || user?.firstName?.trim() || "there";
-
-  const [location, setLocation] = useState<ApproxLocation | null>(null);
-  const [nearbyPlans, setNearbyPlans] = useState<PlanWithMeta[]>([]);
-  const [people, setPeople] = useState<PeopleCard[]>([]);
-  const [upcoming, setUpcoming] = useState<PlanWithMeta[]>([]);
-  const [joined, setJoined] = useState<Record<string, boolean>>({});
-  const [plansLoading, setPlansLoading] = useState(true);
-  const [peopleLoading, setPeopleLoading] = useState(true);
-  const [plansError, setPlansError] = useState<string | null>(null);
-  const [peopleError, setPeopleError] = useState<string | null>(null);
-  const hasLoadedRef = useRef(false);
-
-  const refresh = useCallback(async () => {
-    if (!userId) return;
-    const firstLoad = !hasLoadedRef.current;
-    if (firstLoad) {
-      setPlansLoading(true);
-      setPeopleLoading(true);
-    }
-    const loc = location || readApproxLocation();
-
-    const plansTask = (async () => {
-      try {
-        const page = await listPlansPage(
-          { distanceKm: loc?.lat != null ? "25" : "all" },
-          { userLocation: loc, viewerId: userId, limit: 12 },
-        );
-        const creators = await buildCreatorMapAsync(
-          page.plans.map((plan) => plan.creatorId),
-        );
-        const named = page.plans.map((plan) => {
-          const creator = creators.get(plan.creatorId);
-          return creator
-            ? { ...plan, creatorName: creator.name, creatorAvatar: creator.avatar }
-            : plan;
-        });
-        setNearbyPlans(named.slice(0, 6));
-        setUpcoming(
-          named.filter((plan) => plan.viewerJoined).slice(0, 4),
-        );
-        const map: Record<string, boolean> = {};
-        for (const plan of named) map[plan.id] = Boolean(plan.viewerJoined);
-        setJoined(map);
-        setPlansError(null);
-      } catch {
-        setPlansError("Couldn't load plans.");
-      } finally {
-        setPlansLoading(false);
-      }
-    })();
-
-    const peopleTask = (async () => {
-      try {
-        const peopleCards = await listPeopleYouMayConnectWith(userId, {
-          userLocation: loc,
-        });
-        setPeople(peopleCards.slice(0, 4));
-        setPeopleError(null);
-      } catch {
-        setPeopleError("Couldn't load people.");
-      } finally {
-        setPeopleLoading(false);
-      }
-    })();
-
-    await Promise.all([plansTask, peopleTask]);
-    hasLoadedRef.current = true;
-  }, [location, userId]);
+  const storedLocation = useAppSelector(selectApproxLocation);
+  const nearbyPlans = useAppSelector(selectHomePlans).slice(0, 6);
+  const people = useAppSelector(selectPeoplePreview);
+  const upcoming = useAppSelector(selectHomeUpcoming);
+  const joined = useAppSelector(selectJoinedMap);
+  const plansStatus = useAppSelector(selectHomePlansStatus);
+  const peopleStatus = useAppSelector(selectPeopleStatus);
+  const plansError = useAppSelector(selectHomePlansError);
+  const peopleError = useAppSelector(selectPeopleError);
+  const plansLoading = plansStatus === "idle" || plansStatus === "loading";
+  const peopleLoading = peopleStatus === "idle" || peopleStatus === "loading";
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    if (!userId) return;
+    const loc = storedLocation ?? readApproxLocation();
+    void dispatch(fetchHomePlans({ userId, location: loc }));
+    void dispatch(fetchPeopleCards({ userId, location: loc }));
+  }, [dispatch, storedLocation, userId]);
+
+  function retry() {
+    const loc = storedLocation ?? readApproxLocation();
+    void dispatch(fetchHomePlans({ userId, location: loc, force: true }));
+    void dispatch(fetchPeopleCards({ userId, location: loc, force: true }));
+  }
 
   return (
     <div className={ui.page}>
-      <LocationPrompt onResolved={setLocation} />
+      <LocationPrompt />
       <header className={ui.header}>
         <div className={ui.logo}>Vemee</div>
         <NotificationBell />
@@ -126,7 +82,7 @@ export function HomeScreen() {
         {plansLoading && nearbyPlans.length === 0 ? (
           <PlanCardSkeleton count={2} />
         ) : plansError && nearbyPlans.length === 0 ? (
-          <SectionError message={plansError} onRetry={() => void refresh()} />
+          <SectionError message={plansError} onRetry={retry} />
         ) : nearbyPlans.length === 0 ? (
           <div className={styles.empty}>
             <h3>No plans nearby</h3>
@@ -148,14 +104,9 @@ export function HomeScreen() {
                 plan={plan}
                 viewerId={userId}
                 joined={joined[plan.id]}
-                onJoin={async (id) => {
+                onJoin={(id) => {
                   if (!userId) return;
-                  setJoined((prev) => ({ ...prev, [id]: true }));
-                  const result = await joinPlan(id, userId);
-                  if (!result.ok) {
-                    setJoined((prev) => ({ ...prev, [id]: false }));
-                    setPlansError(result.error);
-                  }
+                  void dispatch(joinPlanOptimistic({ planId: id, userId }));
                 }}
               />
             ))}
@@ -173,7 +124,7 @@ export function HomeScreen() {
         {peopleLoading && people.length === 0 ? (
           <UserCardSkeleton count={3} />
         ) : peopleError && people.length === 0 ? (
-          <SectionError message={peopleError} onRetry={() => void refresh()} />
+          <SectionError message={peopleError} onRetry={retry} />
         ) : people.length === 0 ? (
           <div className={styles.empty}>
             <h3>We&apos;re still finding your people.</h3>
