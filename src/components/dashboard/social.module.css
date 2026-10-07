@@ -101,59 +101,14 @@
 .filterPanel {
   display: grid;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
   margin-bottom: 18px;
   padding: 12px;
   background: var(--vemee-surface);
   border: 1px solid var(--vemee-line);
   border-radius: 20px;
   box-shadow: var(--shadow-soft);
-}
-
-.categoryRow {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 -4px;
-  padding: 2px 4px;
-}
-
-.categoryRow::-webkit-scrollbar {
-  display: none;
-}
-
-.filterChip {
-  scroll-snap-align: start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  min-height: 36px;
-  padding: 0 13px;
-  border: 1px solid var(--vemee-line);
-  border-radius: 999px;
-  background: var(--vemee-bg);
-  color: var(--vemee-muted);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.18s ease;
-}
-
-.filterChip:active {
-  transform: scale(0.97);
-}
-
-.filterChipActive {
-  background: var(--vemee-peach);
-  border-color: var(--vemee-peach);
-  color: #fff;
 }
 
 .filterControls {

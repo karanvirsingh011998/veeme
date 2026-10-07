@@ -100,30 +100,26 @@ export function ExplorePlansScreen() {
       </div>
 
       <section className={styles.filterPanel} aria-label="Plan filters">
-        <div className={styles.categoryRow} role="tablist" aria-label="Activity">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={filters.category === "all"}
-            className={`${styles.filterChip} ${filters.category === "all" ? styles.filterChipActive : ""}`}
-            onClick={() => updateFilters({ ...filters, category: "all" })}
+        <label className={styles.filterField}>
+          <span>Activity</span>
+          <select
+            className={styles.filterSelect}
+            value={filters.category ?? "all"}
+            onChange={(event) =>
+              updateFilters({
+                ...filters,
+                category: event.target.value as PlanFilters["category"],
+              })
+            }
           >
-            All
-          </button>
-          {PLAN_CATEGORIES.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              role="tab"
-              aria-selected={filters.category === c.id}
-              className={`${styles.filterChip} ${filters.category === c.id ? styles.filterChipActive : ""}`}
-              onClick={() => updateFilters({ ...filters, category: c.id })}
-            >
-              <span aria-hidden="true">{c.icon}</span>
-              {c.label}
-            </button>
-          ))}
-        </div>
+            <option value="all">All activities</option>
+            {PLAN_CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.icon} {c.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className={styles.filterControls}>
           <label className={styles.filterField}>
