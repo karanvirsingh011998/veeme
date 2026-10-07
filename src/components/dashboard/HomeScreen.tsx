@@ -99,21 +99,6 @@ export function HomeScreen() {
       <div className={ui.content}>
         <p className={ui.greeting}>{greetingLabel()}</p>
         <h1 className={ui.title}>{firstName}</h1>
-        <p className={ui.tagline}>What are you planning to do?</p>
-
-        <div className={styles.homeCta}>
-          <h2>Create a Plan</h2>
-          <p className={styles.sub} style={{ margin: 0 }}>
-            Post what you want to do and find people to join.
-          </p>
-          <Link
-            href="/dashboard/plans/new"
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            style={{ width: "fit-content" }}
-          >
-            Create a Plan
-          </Link>
-        </div>
 
         {loading ? (
           <ScreenLoading message="Loading your feed…" />
