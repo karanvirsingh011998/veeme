@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth/config";
+import { invalidateCache, loadSwr } from "@/lib/cache/client-cache";
 import { PLAN_CATEGORIES } from "./types";
 import type {
   ActivityPlan,
@@ -25,16 +26,43 @@ function useRemotePlans() {
   return typeof window !== "undefined" && isSupabaseConfigured();
 }
 
-async function fetchRemotePlans(): Promise<{
+type PlanBundle = {
   plans: ActivityPlan[];
   participants: PlanParticipant[];
-}> {
-  const res = await fetch("/api/plans");
-  if (!res.ok) return { plans: [], participants: [] };
-  return (await res.json()) as {
-    plans: ActivityPlan[];
-    participants: PlanParticipant[];
-  };
+  hasMore: boolean;
+};
+
+const PLAN_CACHE_MS = 20_000;
+
+function planQuery(filters: PlanFilters, limit: number, offset: number) {
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  params.set("offset", String(offset));
+  if (filters.category && filters.category !== "all") {
+    params.set("category", filters.category);
+  }
+  if (filters.datePreset && filters.datePreset !== "all" && filters.datePreset !== "custom") {
+    params.set("date", filters.datePreset);
+  }
+  return params.toString();
+}
+
+async function fetchRemotePlans(search = ""): Promise<PlanBundle> {
+  const key = `plans:${search || "member"}`;
+  return loadSwr(key, PLAN_CACHE_MS, async () => {
+    const res = await fetch(`/api/plans${search ? `?${search}` : ""}`);
+    if (!res.ok) return { plans: [], participants: [], hasMore: false };
+    const data = (await res.json()) as Partial<PlanBundle>;
+    return {
+      plans: data.plans || [],
+      participants: data.participants || [],
+      hasMore: Boolean(data.hasMore),
+    };
+  });
+}
+
+export function invalidatePlanCache() {
+  invalidateCache("plans:");
 }
 
 export type PlanWithMeta = ActivityPlan & {
@@ -47,6 +75,7 @@ export type PlanWithMeta = ActivityPlan & {
   creatorName?: string;
   creatorAvatar?: string | null;
   creatorRating?: number | null;
+  viewerJoined?: boolean;
 };
 
 function newId(): string {
@@ -95,6 +124,7 @@ export async function createPlan(
     if (!res.ok || !data.plan) {
       return { ok: false, error: data.error || "Could not create plan." };
     }
+    invalidatePlanCache();
     return { ok: true, plan: data.plan };
   }
 
@@ -168,8 +198,14 @@ function enrich(
   };
 }
 
+export type PlanListResult = {
+  plans: PlanWithMeta[];
+  hasMore: boolean;
+};
+
 /**
  * Lists discoverable plans with optional filters.
+ * Remote results are paginated (default 20) and cached briefly.
  */
 export async function listPlans(
   filters: PlanFilters = {},
@@ -179,15 +215,39 @@ export async function listPlans(
       string,
       { name: string; avatar?: string | null; rating?: number | null }
     >;
+    viewerId?: string;
+    limit?: number;
+    offset?: number;
   },
 ): Promise<PlanWithMeta[]> {
+  const page = await listPlansPage(filters, opts);
+  return page.plans;
+}
+
+export async function listPlansPage(
+  filters: PlanFilters = {},
+  opts?: {
+    userLocation?: ApproxLocation | null;
+    creators?: Map<
+      string,
+      { name: string; avatar?: string | null; rating?: number | null }
+    >;
+    viewerId?: string;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<PlanListResult> {
+  const limit = opts?.limit ?? 20;
+  const offset = opts?.offset ?? 0;
   let remoteParticipants: PlanParticipant[] | undefined;
   let plans: ActivityPlan[];
+  let hasMore = false;
 
   if (useRemotePlans()) {
-    const remote = await fetchRemotePlans();
+    const remote = await fetchRemotePlans(planQuery(filters, limit, offset));
     plans = remote.plans;
     remoteParticipants = remote.participants;
+    hasMore = remote.hasMore;
   } else {
     plans = listStoredPlans();
   }
@@ -247,7 +307,27 @@ export async function listPlans(
     });
   }
 
-  return enriched;
+  if (!useRemotePlans()) {
+    const start = offset;
+    return {
+      plans: enriched.slice(start, start + limit),
+      hasMore: enriched.length > start + limit,
+    };
+  }
+
+  if (opts?.viewerId && remoteParticipants) {
+    const joined = new Set(
+      remoteParticipants
+        .filter((row) => row.userId === opts.viewerId && row.status === "joined")
+        .map((row) => row.planId),
+    );
+    enriched = enriched.map((plan) => ({
+      ...plan,
+      viewerJoined: joined.has(plan.id) || plan.creatorId === opts.viewerId,
+    }));
+  }
+
+  return { plans: enriched, hasMore };
 }
 
 export async function getPlan(
@@ -291,6 +371,7 @@ export async function joinPlan(
     });
     const data = (await res.json()) as { error?: string };
     if (!res.ok) return { ok: false, error: data.error || "Could not join." };
+    invalidatePlanCache();
     return { ok: true };
   }
 
@@ -366,7 +447,9 @@ export async function listUserPlansAsync(userId: string): Promise<{
   joined: ActivityPlan[];
 }> {
   if (useRemotePlans()) {
-    const remote = await fetchRemotePlans();
+    const remote = await fetchRemotePlans(
+      new URLSearchParams({ memberId: userId }).toString(),
+    );
     const created = remote.plans.filter((p) => p.creatorId === userId);
     const joinedIds = new Set(
       remote.participants

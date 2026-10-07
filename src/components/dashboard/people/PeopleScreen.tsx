@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import {
-  getPublicProfileCardAsync,
+  buildCreatorMapAsync,
   listPeopleYouMayConnectWith,
   type PeopleCard,
 } from "@/lib/people/service";
@@ -19,7 +19,10 @@ import {
 import { getOrCreateDirectConversation } from "@/lib/chat/service";
 import { readApproxLocation } from "@/lib/location/geo";
 import { LocationPrompt } from "@/components/dashboard/location/LocationPrompt";
-import { ScreenLoading } from "@/components/dashboard/ui/ScreenLoading";
+import {
+  SectionError,
+  UserCardSkeleton,
+} from "@/components/dashboard/ui/Skeletons";
 import styles from "../social.module.css";
 
 /**
@@ -35,6 +38,7 @@ export function PeopleScreen() {
   const [accepted, setAccepted] = useState<Connection[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const hasLoadedRef = useRef(false);
 
@@ -60,14 +64,15 @@ export function PeopleScreen() {
       for (const row of acceptedRows) {
         ids.add(row.requesterId === userId ? row.recipientId : row.requesterId);
       }
+      const creators = await buildCreatorMapAsync([...ids]);
       const nextNames: Record<string, string> = {};
-      await Promise.all(
-        [...ids].map(async (id) => {
-          const person = await getPublicProfileCardAsync(id, userId);
-          nextNames[id] = person?.name || "a member";
-        }),
-      );
+      for (const id of ids) {
+        nextNames[id] = creators.get(id)?.name || "a member";
+      }
       setNames(nextNames);
+      setError(null);
+    } catch {
+      setError("Couldn't load people.");
     } finally {
       hasLoadedRef.current = true;
       setLoading(false);
@@ -81,8 +86,26 @@ export function PeopleScreen() {
   async function onConnect(personId: string) {
     if (!userId) return;
     setBusyId(personId);
-    await sendConnectRequest(userId, personId);
+    setPeople((current) =>
+      current.map((person) =>
+        person.id === personId
+          ? { ...person, connectionStatus: "pending_sent" }
+          : person,
+      ),
+    );
+    const result = await sendConnectRequest(userId, personId);
     setBusyId(null);
+    if (!result.ok) {
+      setPeople((current) =>
+        current.map((person) =>
+          person.id === personId
+            ? { ...person, connectionStatus: "none" }
+            : person,
+        ),
+      );
+      setError(result.error);
+      return;
+    }
     void refresh();
   }
 
@@ -118,7 +141,10 @@ export function PeopleScreen() {
         </div>
       </div>
 
-      {loading ? <ScreenLoading message="Loading people…" /> : null}
+      {loading && people.length === 0 && pending.length === 0 ? (
+        <UserCardSkeleton count={4} />
+      ) : null}
+      {error ? <SectionError message={error} onRetry={() => void refresh()} /> : null}
 
       {!loading && pending.length > 0 ? (
         <>

@@ -13,12 +13,18 @@ export async function GET(request: Request) {
       { status: 503 },
     );
   }
-  const conversationId = new URL(request.url).searchParams.get("conversationId");
+  const params = new URL(request.url).searchParams;
+  const conversationId = params.get("conversationId");
   if (!conversationId) {
     return NextResponse.json({ error: "Missing conversationId." }, { status: 400 });
   }
-  const messages = await sbListMessages(conversationId);
-  return NextResponse.json({ messages });
+  const limit = Number(params.get("limit") || 40);
+  const page = await sbListMessages(conversationId, {
+    limit: Number.isFinite(limit) ? limit : 40,
+    before: params.get("before") || undefined,
+    after: params.get("after") || undefined,
+  });
+  return NextResponse.json(page);
 }
 
 export async function POST(request: Request) {

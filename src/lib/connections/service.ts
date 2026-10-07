@@ -1,3 +1,4 @@
+import { loadSwr } from "@/lib/cache/client-cache";
 import type { Connection, ConnectionStatus } from "./types";
 
 export type { Connection, ConnectionStatus };
@@ -49,20 +50,19 @@ export async function listConnectionsForAsync(
 ): Promise<Connection[]> {
   if (!userId) return [];
   try {
-    const res = await fetch(
-      `/api/connections?userId=${encodeURIComponent(userId)}`,
-      { cache: "no-store" },
-    );
-    if (res.ok) {
+    return await loadSwr(`connections:${userId}`, 12_000, async () => {
+      const res = await fetch(
+        `/api/connections?userId=${encodeURIComponent(userId)}`,
+      );
+      if (!res.ok) throw new Error("connections");
       const data = (await res.json()) as { connections?: Connection[] };
       return data.connections || [];
-    }
+    });
   } catch {
-    // fall through to local
+    return readAll().filter(
+      (c) => c.requesterId === userId || c.recipientId === userId,
+    );
   }
-  return readAll().filter(
-    (c) => c.requesterId === userId || c.recipientId === userId,
-  );
 }
 
 export async function getConnectionBetweenAsync(

@@ -98,29 +98,107 @@
   }
 }
 
-.filters {
+.filterPanel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 12px;
+  background: var(--vemee-surface);
+  border: 1px solid var(--vemee-line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.categoryRow {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
-  margin-bottom: 14px;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px;
+  padding: 2px 4px;
 }
 
-.filter {
+.categoryRow::-webkit-scrollbar {
+  display: none;
+}
+
+.filterChip {
+  scroll-snap-align: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex: none;
+  min-height: 36px;
+  padding: 0 13px;
   border: 1px solid var(--vemee-line);
-  background: var(--vemee-surface);
-  color: var(--vemee-muted);
   border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 750;
+  background: var(--vemee-bg);
+  color: var(--vemee-muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
 }
 
-.filterActive {
-  background: var(--vemee-peach-soft);
+.filterChip:active {
+  transform: scale(0.97);
+}
+
+.filterChipActive {
+  background: var(--vemee-peach);
+  border-color: var(--vemee-peach);
+  color: #fff;
+}
+
+.filterControls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.filterField {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.filterField span {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vemee-muted);
+}
+
+.filterSelect {
+  width: 100%;
+  min-height: 44px;
+  appearance: none;
+  border: 1px solid var(--vemee-line);
+  border-radius: 14px;
+  background: var(--vemee-bg)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2373665f' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat right 12px center;
+  padding: 0 34px 0 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--vemee-ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.filterSelect:focus {
+  outline: none;
   border-color: #e6d2c4;
-  color: var(--vemee-peach-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vemee-peach) 18%, transparent);
+  background-color: #fff;
 }
 
 .planGrid {
@@ -301,6 +379,15 @@
   font-size: 13px;
   font-weight: 750;
   border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btnPrimary {
@@ -524,6 +611,10 @@
   background: var(--vemee-band);
   color: var(--vemee-ink);
   border-bottom-left-radius: 6px;
+}
+
+.bubblePending {
+  opacity: 0.72;
 }
 
 .bubbleTime {

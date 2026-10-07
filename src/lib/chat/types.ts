@@ -5,6 +5,9 @@ export type ChatMessage = {
   body: string;
   createdAt: string;
   readAt: string | null;
+  /** Local-only until the server confirms the send. */
+  pending?: boolean;
+  failed?: boolean;
 };
 
 export type DirectConversation = {

@@ -28,7 +28,7 @@ export async function sbListConnectionsFor(
   if (!db) return [];
   const { data } = await db
     .from("connections")
-    .select("*")
+    .select("id, requester_id, recipient_id, status, created_at, updated_at")
     .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`)
     .order("updated_at", { ascending: false });
   return ((data || []) as DbConnection[]).map(mapRow);
@@ -71,7 +71,7 @@ export async function sbCreateConnection(
         updated_at: now,
       })
       .eq("id", existing.id)
-      .select("*")
+      .select("id, requester_id, recipient_id, status, created_at, updated_at")
       .single();
     if (error || !data) {
       return { ok: false, error: error?.message || "Could not update request." };
@@ -88,7 +88,7 @@ export async function sbCreateConnection(
       created_at: now,
       updated_at: now,
     })
-    .select("*")
+    .select("id, requester_id, recipient_id, status, created_at, updated_at")
     .single();
 
   if (error || !data) {
@@ -107,7 +107,7 @@ export async function sbRespondToConnection(
 
   const { data: existing } = await db
     .from("connections")
-    .select("*")
+    .select("id, requester_id, recipient_id, status, created_at, updated_at")
     .eq("id", connectionId)
     .maybeSingle();
   const row = existing as DbConnection | null;
@@ -123,7 +123,7 @@ export async function sbRespondToConnection(
       updated_at: new Date().toISOString(),
     })
     .eq("id", connectionId)
-    .select("*")
+    .select("id, requester_id, recipient_id, status, created_at, updated_at")
     .single();
 
   if (error || !data) {

@@ -25,6 +25,11 @@ type DbPlan = {
   updated_at: string;
 };
 
+const PLAN_COLUMNS =
+  "id, creator_id, category, title, description, image_key, image_url, plan_date, plan_time, location_label, city, lat, lng, people_needed, visibility, created_at, updated_at";
+
+const PARTICIPANT_COLUMNS = "plan_id, user_id, status, joined_at";
+
 function mapPlan(row: DbPlan): ActivityPlan {
   return {
     id: row.id,
@@ -74,7 +79,7 @@ export async function sbCreatePlan(
       people_needed: input.peopleNeeded,
       visibility: input.visibility,
     })
-    .select("*")
+    .select(PLAN_COLUMNS)
     .single();
 
   if (error || !data) {
@@ -91,16 +96,94 @@ export async function sbCreatePlan(
   return { ok: true, plan };
 }
 
-export async function sbListPlans(): Promise<ActivityPlan[]> {
+export type PlanListQuery = {
+  limit?: number;
+  offset?: number;
+  category?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+export async function sbListPlans(
+  query: PlanListQuery = {},
+): Promise<{ plans: ActivityPlan[]; hasMore: boolean }> {
   const db = getDataClient();
-  if (!db) return [];
-  const { data, error } = await db
+  if (!db) return { plans: [], hasMore: false };
+
+  const limit = Math.min(Math.max(query.limit ?? 20, 1), 40);
+  const offset = Math.max(query.offset ?? 0, 0);
+  // Client filter types drop methods after reassignment; keep the chain loosely typed.
+  let request = db
     .from("activity_plans")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(200);
-  if (error || !data) return [];
-  return (data as DbPlan[]).map(mapPlan);
+    .select(PLAN_COLUMNS)
+    .order("created_at", { ascending: false }) as unknown as {
+    eq: (column: string, value: string) => typeof request;
+    gte: (column: string, value: string) => typeof request;
+    lte: (column: string, value: string) => typeof request;
+    range: (from: number, to: number) => Promise<{
+      data: unknown;
+      error: { message: string } | null;
+    }>;
+  };
+
+  if (query.category && query.category !== "all") {
+    request = request.eq("category", query.category);
+  }
+  if (query.dateFrom) request = request.gte("plan_date", query.dateFrom);
+  if (query.dateTo) request = request.lte("plan_date", query.dateTo);
+
+  const { data, error } = await request.range(offset, offset + limit);
+  if (error || !data) return { plans: [], hasMore: false };
+
+  const rows = data as DbPlan[];
+  const hasMore = rows.length > limit;
+  return {
+    plans: rows.slice(0, limit).map(mapPlan),
+    hasMore,
+  };
+}
+
+/** Plans a member created or joined — not the whole catalog. */
+export async function sbListPlansForMember(
+  userId: string,
+): Promise<{ plans: ActivityPlan[]; participants: PlanParticipant[] }> {
+  const db = getDataClient();
+  if (!db) return { plans: [], participants: [] };
+
+  const [{ data: created }, { data: joined }] = await Promise.all([
+    db
+      .from("activity_plans")
+      .select(PLAN_COLUMNS)
+      .eq("creator_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    db
+      .from("plan_participants")
+      .select(PARTICIPANT_COLUMNS)
+      .eq("user_id", userId)
+      .eq("status", "joined")
+      .limit(40),
+  ]);
+
+  const createdPlans = ((created || []) as DbPlan[]).map(mapPlan);
+  const joinedRows = mapParticipants(joined);
+  const known = new Set(createdPlans.map((plan) => plan.id));
+  const extraIds = [
+    ...new Set(joinedRows.map((row) => row.planId).filter((id) => !known.has(id))),
+  ].slice(0, 20);
+
+  let extraPlans: ActivityPlan[] = [];
+  if (extraIds.length > 0) {
+    const { data } = await db
+      .from("activity_plans")
+      .select(PLAN_COLUMNS)
+      .in("id", extraIds);
+    extraPlans = ((data || []) as DbPlan[]).map(mapPlan);
+  }
+
+  const plans = [...createdPlans, ...extraPlans];
+  const participants = await sbListParticipantsForPlans(plans.map((plan) => plan.id));
+  return { plans, participants };
 }
 
 export async function sbGetPlan(id: string): Promise<ActivityPlan | null> {
@@ -108,22 +191,16 @@ export async function sbGetPlan(id: string): Promise<ActivityPlan | null> {
   if (!db) return null;
   const { data } = await db
     .from("activity_plans")
-    .select("*")
+    .select(PLAN_COLUMNS)
     .eq("id", id)
     .maybeSingle();
   return data ? mapPlan(data as DbPlan) : null;
 }
 
-export async function sbListParticipants(
-  planId?: string,
-): Promise<PlanParticipant[]> {
-  const db = getDataClient();
-  if (!db) return [];
-  let query = db.from("plan_participants").select("*");
-  if (planId) query = query.eq("plan_id", planId);
-  const { data, error } = await query;
-  if (error || !data) return [];
-  return (data as Array<{
+function mapParticipants(
+  data: unknown,
+): PlanParticipant[] {
+  return ((data || []) as Array<{
     plan_id: string;
     user_id: string;
     status: PlanParticipant["status"];
@@ -134,6 +211,32 @@ export async function sbListParticipants(
     status: row.status,
     joinedAt: row.joined_at,
   }));
+}
+
+export async function sbListParticipants(
+  planId?: string,
+): Promise<PlanParticipant[]> {
+  const db = getDataClient();
+  if (!db) return [];
+  let query = db.from("plan_participants").select(PARTICIPANT_COLUMNS);
+  if (planId) query = query.eq("plan_id", planId);
+  else query = query.limit(200);
+  const { data, error } = await query;
+  if (error || !data) return [];
+  return mapParticipants(data);
+}
+
+export async function sbListParticipantsForPlans(
+  planIds: string[],
+): Promise<PlanParticipant[]> {
+  const db = getDataClient();
+  if (!db || planIds.length === 0) return [];
+  const { data, error } = await db
+    .from("plan_participants")
+    .select(PARTICIPANT_COLUMNS)
+    .in("plan_id", planIds);
+  if (error || !data) return [];
+  return mapParticipants(data);
 }
 
 export async function sbJoinPlan(

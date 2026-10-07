@@ -22,7 +22,7 @@ type ChatUnreadContextValue = {
 
 const ChatUnreadContext = createContext<ChatUnreadContextValue | null>(null);
 
-const POLL_MS = 4000;
+const POLL_MS = 15000;
 
 /**
  * Polls unread chat counts app-wide so nav badges update without a full refresh.

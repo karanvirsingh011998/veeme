@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import {
   listConversationSummariesAsync,
   type ConversationSummary,
 } from "@/lib/chat/service";
-import { getPublicProfileCardAsync } from "@/lib/people/service";
+import { buildCreatorMapAsync } from "@/lib/people/service";
 import { useChatUnread } from "@/components/dashboard/chat/ChatUnreadProvider";
-import { ScreenLoading } from "@/components/dashboard/ui/ScreenLoading";
+import { ChatListSkeleton, SectionError } from "@/components/dashboard/ui/Skeletons";
 import styles from "../social.module.css";
 import ui from "../app-ui.module.css";
 
@@ -30,22 +30,29 @@ export function ChatInboxScreen() {
   const { unreadTotal, unreadChats, refreshUnread } = useChatUnread();
   const [rows, setRows] = useState<InboxRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const hasRowsRef = useRef(false);
 
   const load = useCallback(
     async (isInitial = false) => {
       if (!userId) return;
-      if (isInitial) setLoading(true);
+      if (isInitial && !hasRowsRef.current) setLoading(true);
       try {
         const conversations = await listConversationSummariesAsync(userId);
+        const names = await buildCreatorMapAsync(
+          conversations.map(
+            (conversation) =>
+              conversation.participantIds.find((id) => id !== userId) || "",
+          ),
+        );
         const next: InboxRow[] = [];
         for (const conversation of conversations) {
           const otherId =
             conversation.participantIds.find((id) => id !== userId) || "";
-          const person = await getPublicProfileCardAsync(otherId, userId);
           const last = conversation.lastMessage;
           next.push({
             conversation,
-            name: person?.name || "Member",
+            name: names.get(otherId)?.name || "Member",
             preview: last?.body || "No messages yet",
             time: last
               ? new Date(last.createdAt).toLocaleTimeString([], {
@@ -62,7 +69,11 @@ export function ChatInboxScreen() {
           return b.conversation.updatedAt.localeCompare(a.conversation.updatedAt);
         });
         setRows(next);
+        hasRowsRef.current = next.length > 0;
+        setError(null);
         void refreshUnread();
+      } catch {
+        setError("Couldn't load chats.");
       } finally {
         if (isInitial) setLoading(false);
       }
@@ -73,7 +84,7 @@ export function ChatInboxScreen() {
   useEffect(() => {
     if (!userId) return;
     void load(true);
-    const timer = window.setInterval(() => void load(false), 4000);
+    const timer = window.setInterval(() => void load(false), 15000);
     const onFocus = () => void load(false);
     window.addEventListener("focus", onFocus);
     return () => {
@@ -100,8 +111,10 @@ export function ChatInboxScreen() {
       </header>
 
       <div className={ui.content}>
-        {loading ? (
-          <ScreenLoading message="Loading conversations…" />
+        {loading && rows.length === 0 ? (
+          <ChatListSkeleton />
+        ) : error && rows.length === 0 ? (
+          <SectionError message={error} onRetry={() => void load(true)} />
         ) : rows.length === 0 ? (
           <div className={styles.empty}>
             <h3>Your conversations will appear here.</h3>

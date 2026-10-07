@@ -1,4 +1,5 @@
 import { PROFILE_STORE_KEY } from "@/lib/auth/constants";
+import { loadSwr } from "@/lib/cache/client-cache";
 import type { ProfileRow } from "@/types/database";
 import { listStoredPlans, listStoredParticipants } from "@/lib/plans/store";
 import {
@@ -142,14 +143,17 @@ async function fetchPublicProfiles(opts?: {
   try {
     const params = new URLSearchParams();
     if (opts?.ids?.length) params.set("ids", opts.ids.join(","));
-    if (opts?.exclude) params.set("exclude", opts.exclude);
+    if (opts?.exclude) {
+      params.set("exclude", opts.exclude);
+      params.set("limit", "20");
+    }
     const qs = params.toString();
-    const res = await fetch(`/api/people${qs ? `?${qs}` : ""}`, {
-      cache: "no-store",
+    return await loadSwr(`people:${qs || "all"}`, 20_000, async () => {
+      const res = await fetch(`/api/people${qs ? `?${qs}` : ""}`);
+      if (!res.ok) return [];
+      const data = (await res.json()) as { people?: PublicProfileDto[] };
+      return data.people || [];
     });
-    if (!res.ok) return [];
-    const data = (await res.json()) as { people?: PublicProfileDto[] };
-    return data.people || [];
   } catch {
     return [];
   }
@@ -165,7 +169,9 @@ export async function listPeopleYouMayConnectWith(
     currentInterests?: string[];
   },
 ): Promise<PeopleCard[]> {
-  const remote = await fetchPublicProfiles({ exclude: currentUserId });
+  const remote = await fetchPublicProfiles({
+    exclude: currentUserId,
+  });
   const profiles: PublicProfileDto[] =
     remote.length > 0
       ? remote
@@ -240,6 +246,7 @@ export async function listPeopleYouMayConnectWith(
 
   return scored
     .sort((a, b) => b.score - a.score)
+    .slice(0, 20)
     .map((s) => s.card);
 }
 

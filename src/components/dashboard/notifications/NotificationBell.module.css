@@ -1,0 +1,154 @@
+.wrap {
+  position: relative;
+}
+
+.bell {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--vemee-line);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  color: var(--vemee-ink);
+  padding: 0;
+  cursor: pointer;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--vemee-peach);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(420px, 70dvh);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--vemee-line);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(28, 37, 34, 0.12);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 10px;
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+
+.panelHead strong {
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+
+.markAll {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--vemee-peach);
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.empty {
+  margin: 0;
+  padding: 8px 14px 16px;
+  color: var(--vemee-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.item,
+.itemUnread {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  padding: 10px 8px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.itemUnread {
+  background: color-mix(in srgb, var(--vemee-peach) 10%, #fff);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--vemee-peach) 18%, #fff);
+  color: var(--vemee-peach);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.message {
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.time {
+  font-size: 12px;
+  color: var(--vemee-muted);
+  font-weight: 550;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--vemee-peach);
+  flex-shrink: 0;
+}

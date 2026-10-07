@@ -1,0 +1,120 @@
+.bone {
+  display: block;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    var(--vemee-band) 0%,
+    #fff 45%,
+    var(--vemee-band) 100%
+  );
+  background-size: 200% 100%;
+  animation: vemeeShimmer 1.2s ease-in-out infinite;
+}
+
+.grid,
+.stack {
+  display: grid;
+  gap: 12px;
+}
+
+.plan {
+  border: 1px solid var(--vemee-line);
+  border-radius: 22px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.planImage {
+  height: 140px;
+  border-radius: 0;
+}
+
+.planBody,
+.userCopy {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+}
+
+.user {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--vemee-line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.userCopy {
+  padding: 0;
+  flex: 1;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.line,
+.lineMid,
+.lineShort {
+  height: 12px;
+}
+
+.line {
+  width: 88%;
+}
+
+.lineMid {
+  width: 62%;
+}
+
+.lineShort {
+  width: 36%;
+}
+
+.error {
+  margin-top: 8px;
+  padding: 16px;
+  border: 1px solid var(--vemee-line);
+  border-radius: 16px;
+  background: #fff;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.error p {
+  margin: 0;
+  color: var(--vemee-muted);
+  font-size: 14px;
+}
+
+.error button {
+  border: 0;
+  background: var(--vemee-peach);
+  color: #fff;
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 14px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+@keyframes vemeeShimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bone {
+    animation: none;
+  }
+}

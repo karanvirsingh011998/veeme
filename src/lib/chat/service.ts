@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth/config";
+import { invalidateCache, loadSwr } from "@/lib/cache/client-cache";
 import type {
   ChatMessage,
   ConversationSummary,
@@ -86,15 +87,20 @@ export async function listConversationSummariesAsync(
   if (!userId) return [];
 
   if (useRemote()) {
-    const res = await fetch(
-      `/api/chat/conversations?userId=${encodeURIComponent(userId)}`,
-      { cache: "no-store" },
+    return loadSwr(
+      `chat-inbox:${userId}`,
+      12_000,
+      async () => {
+        const res = await fetch(
+          `/api/chat/conversations?userId=${encodeURIComponent(userId)}`,
+        );
+        if (!res.ok) return [];
+        const data = (await res.json()) as {
+          conversations?: ConversationSummary[];
+        };
+        return data.conversations || [];
+      },
     );
-    if (!res.ok) return [];
-    const data = (await res.json()) as {
-      conversations?: ConversationSummary[];
-    };
-    return data.conversations || [];
   }
 
   return listConversationsFor(userId).map((conversation) => {
@@ -187,19 +193,46 @@ export function listMessages(conversationId: string): ChatMessage[] {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
+export async function listMessagesPage(
+  conversationId: string,
+  opts?: { before?: string; after?: string; limit?: number },
+): Promise<{ messages: ChatMessage[]; hasMore: boolean }> {
+  const limit = opts?.limit ?? 40;
+  if (useRemote()) {
+    const params = new URLSearchParams({
+      conversationId,
+      limit: String(limit),
+    });
+    if (opts?.before) params.set("before", opts.before);
+    if (opts?.after) params.set("after", opts.after);
+    const res = await fetch(`/api/chat/messages?${params}`);
+    if (!res.ok) return { messages: [], hasMore: false };
+    const data = (await res.json()) as {
+      messages?: ChatMessage[];
+      hasMore?: boolean;
+    };
+    return { messages: data.messages || [], hasMore: Boolean(data.hasMore) };
+  }
+
+  const all = listMessages(conversationId);
+  if (opts?.after) {
+    return {
+      messages: all.filter((message) => message.createdAt > opts.after!),
+      hasMore: false,
+    };
+  }
+  const older = opts?.before
+    ? all.filter((message) => message.createdAt < opts.before!)
+    : all;
+  const page = older.slice(Math.max(older.length - limit, 0));
+  return { messages: page, hasMore: older.length > limit };
+}
+
 export async function listMessagesAsync(
   conversationId: string,
 ): Promise<ChatMessage[]> {
-  if (useRemote()) {
-    const res = await fetch(
-      `/api/chat/messages?conversationId=${encodeURIComponent(conversationId)}`,
-      { cache: "no-store" },
-    );
-    if (!res.ok) return [];
-    const data = (await res.json()) as { messages: ChatMessage[] };
-    return data.messages || [];
-  }
-  return listMessages(conversationId);
+  const page = await listMessagesPage(conversationId);
+  return page.messages;
 }
 
 export async function sendMessage(
@@ -223,6 +256,7 @@ export async function sendMessage(
     if (!res.ok || !data.message) {
       return { ok: false, error: data.error || "Could not send message." };
     }
+    invalidateCache("chat-inbox:");
     return { ok: true, message: data.message };
   }
 

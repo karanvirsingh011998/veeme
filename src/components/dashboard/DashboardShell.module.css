@@ -20,6 +20,27 @@
   overflow: hidden;
 }
 
+.pageIn {
+  animation: vemeePageIn 0.32s ease;
+}
+
+@keyframes vemeePageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageIn {
+    animation: none;
+  }
+}
+
 @media (min-width: 1024px) {
   .shell {
     display: grid;

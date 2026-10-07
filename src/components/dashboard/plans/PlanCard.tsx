@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import type { PlanWithMeta } from "@/lib/plans/service";
 import { formatPlanWhen, formatPostedAt } from "@/lib/plans/service";
@@ -16,7 +17,7 @@ type PlanCardProps = {
 /**
  * Reusable explore/home plan card with creator + schedule.
  */
-export function PlanCard({
+export const PlanCard = memo(function PlanCard({
   plan,
   viewerId,
   onJoin,
@@ -29,7 +30,13 @@ export function PlanCard({
   return (
     <article className={styles.planCard}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={plan.image} alt="" className={styles.planImage} />
+      <img
+        src={plan.image}
+        alt=""
+        className={styles.planImage}
+        loading="lazy"
+        decoding="async"
+      />
       <div className={styles.planBody}>
         <div className={styles.cardTop}>
           <span className={styles.category}>
@@ -94,4 +101,4 @@ export function PlanCard({
       </div>
     </article>
   );
-}
+});

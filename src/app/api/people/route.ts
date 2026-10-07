@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       .select(PROFILE_SELECT)
       .eq("account_status", "active")
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(Math.min(Math.max(Number(searchParams.get("limit") || 20), 1), 20));
 
     let people = ((data || []) as ProfileRow[]).map(toPublic);
     if (exclude) people = people.filter((p) => p.id !== exclude);
@@ -80,5 +80,6 @@ export async function GET(request: Request) {
     .filter((p) => p.account_status === "active")
     .map(toPublic);
   if (exclude) people = people.filter((p) => p.id !== exclude);
-  return NextResponse.json({ people });
+  const limit = Math.min(Math.max(Number(searchParams.get("limit") || 20), 1), 20);
+  return NextResponse.json({ people: people.slice(0, limit) });
 }

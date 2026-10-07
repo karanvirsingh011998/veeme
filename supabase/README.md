@@ -8,6 +8,7 @@
 | `migrations/20260326120100_rls_policies.sql` | Row Level Security policies |
 | `migrations/20260326160000_activity_plans.sql` | Plans, participants, connections, approx location |
 | `migrations/20260326170000_legal_acceptance.sql` | Terms / Privacy acceptance timestamps on profiles |
+| `migrations/20260326180000_query_indexes.sql` | Indexes for plan, connection, and chat lookups |
 | `QUERIES.sql` | Copy-paste operational / discover queries |
 
 ## Plans + chat data

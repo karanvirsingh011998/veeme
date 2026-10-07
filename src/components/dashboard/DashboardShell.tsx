@@ -47,7 +47,9 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
         <div
           className={`${styles.scroll} ${chatThread ? styles.scrollFlush : ""}`}
         >
-          {children}
+          <div key={pathname} className={styles.pageIn}>
+            {children}
+          </div>
         </div>
         <BottomNav />
       </div>
