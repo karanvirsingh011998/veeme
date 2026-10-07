@@ -140,6 +140,16 @@
   margin-top: 14px;
 }
 
+.membershipLink {
+  display: flex;
+  width: fit-content;
+  margin: 10px auto 0;
+  color: var(--vemee-peach-2);
+  font-size: 14px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
 .card {
   margin-top: 14px;
   background: var(--vemee-surface);

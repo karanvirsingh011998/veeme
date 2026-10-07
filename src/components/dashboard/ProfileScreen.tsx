@@ -1,6 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import {
+  DEFAULT_MEMBERSHIP_PLANS,
+  type MembershipKey,
+} from "@/lib/membership/catalog";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import { MANUAL_CITIES } from "@/lib/location/geo";
@@ -42,6 +46,7 @@ export function ProfileScreen() {
   const [editing, setEditing] = useState(false);
   const [ratingCounts, setRatingCounts] =
     useState<PersonRatingCounts>(EMPTY_RATING_COUNTS);
+  const [planName, setPlanName] = useState("Free");
   const loadingStats = statsStatus === "idle" || statsStatus === "loading";
 
   useEffect(() => {
@@ -56,6 +61,18 @@ export function ProfileScreen() {
     void getPersonRatingCounts(userId).then((counts) => {
       if (!cancelled) setRatingCounts(counts);
     });
+    void fetch(`/api/membership?userId=${encodeURIComponent(userId)}`, {
+      cache: "no-store",
+    })
+      .then((res) => res.json())
+      .then((data: { membershipKey?: MembershipKey }) => {
+        if (cancelled) return;
+        const match = DEFAULT_MEMBERSHIP_PLANS.find(
+          (plan) => plan.key === data.membershipKey,
+        );
+        setPlanName(match?.name || "Free");
+      })
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -127,6 +144,9 @@ export function ProfileScreen() {
         ) : (
           <span className={styles.badgeMuted}>Phone account</span>
         )}
+        <Link href="/membership" className={styles.membershipLink}>
+          {planName} plan
+        </Link>
         {bio && !editing ? (
           <p className={styles.bioPreview}>{bio}</p>
         ) : null}

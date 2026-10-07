@@ -3,9 +3,10 @@
  */
 
 export const HEADER_NAV_LINKS = [
-  { href: "#nearby", label: "Plans" },
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#safety", label: "Safety" },
+  { href: "/#nearby", label: "Plans" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#safety", label: "Safety" },
+  { href: "/membership", label: "Membership" },
 ] as const;
 
 export const NAV_LINKS = HEADER_NAV_LINKS;
