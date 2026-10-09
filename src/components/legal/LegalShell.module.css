@@ -10,21 +10,6 @@
   color: var(--vemee-ink);
 }
 
-.header {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 20px 20px 0;
-}
-
-.logo {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  color: var(--vemee-ink);
-  text-decoration: none;
-}
-
 .main {
   max-width: 720px;
   margin: 0 auto;

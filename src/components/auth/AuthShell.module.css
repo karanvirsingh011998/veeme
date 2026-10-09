@@ -7,19 +7,6 @@
   flex-direction: column;
 }
 
-.header {
-  height: var(--header-h-mobile);
-  display: flex;
-  align-items: center;
-  padding-inline: 16px;
-}
-
-.logo {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
-}
-
 .main {
   flex: 1;
   display: flex;
@@ -77,10 +64,5 @@
 
   .card {
     padding: 36px 32px 28px;
-  }
-
-  .header {
-    height: var(--header-h);
-    padding-inline: 32px;
   }
 }

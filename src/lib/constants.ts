@@ -7,14 +7,19 @@ export const HEADER_NAV_LINKS = [
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#safety", label: "Safety" },
   { href: "/membership", label: "Membership" },
+  { href: "/about", label: "About" },
 ] as const;
 
 export const NAV_LINKS = HEADER_NAV_LINKS;
 
-export const FOOTER_LEGAL = [
-  { href: "#privacy", label: "Privacy Policy" },
-  { href: "#terms", label: "Terms of Service" },
-  { href: "#guidelines", label: "Community Guidelines" },
+export const FOOTER_LINKS = [
+  { href: "/#nearby", label: "Plans" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#safety", label: "Safety" },
+  { href: "/membership", label: "Membership" },
+  { href: "/about", label: "About" },
+  { href: "/terms", label: "Terms & Conditions" },
+  { href: "/privacy", label: "Privacy Policy" },
 ] as const;
 
 export const LIVE_PLANS = [

@@ -2,16 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { HEADER_NAV_LINKS } from "@/lib/constants";
+import { readAuthSession } from "@/lib/auth/session";
 import { Button } from "@/components/ui/Button";
 import styles from "./SiteHeader.module.css";
 
 /**
- * Public landing header — circular mark + brand + login (matches Veeme Refined).
+ * Shared public header — brand, section links, and login or dashboard.
  */
 export function SiteHeader() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -26,6 +30,14 @@ export function SiteHeader() {
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  useEffect(() => {
+    setSignedIn(Boolean(readAuthSession()));
+  }, [pathname]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ""}`}>
@@ -42,24 +54,35 @@ export function SiteHeader() {
 
         <nav className={styles.desktopNav} aria-label="Primary">
           {HEADER_NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} className={styles.navLink}>
+            <Link key={link.href} href={link.href} className={styles.navLink}>
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className={styles.desktopActions}>
-          <Button href="/login" variant="ghost" className={styles.loginBtn}>
-            Log in
-          </Button>
-          <Button href="/signup" variant="primary" className={styles.ctaBtn}>
-            Get started
-          </Button>
+          {signedIn ? (
+            <Button href="/dashboard" variant="primary" className={styles.ctaBtn}>
+              Dashboard
+            </Button>
+          ) : (
+            <>
+              <Button href="/login" variant="ghost" className={styles.loginBtn}>
+                Log in
+              </Button>
+              <Button href="/signup" variant="primary" className={styles.ctaBtn}>
+                Get started
+              </Button>
+            </>
+          )}
         </div>
 
         <div className={styles.mobileActions}>
-          <Link href="/login" className={styles.mobileLogin}>
-            Log in
+          <Link
+            href={signedIn ? "/dashboard" : "/login"}
+            className={styles.mobileLogin}
+          >
+            {signedIn ? "Dashboard" : "Log in"}
           </Link>
           <button
             type="button"
@@ -83,22 +106,30 @@ export function SiteHeader() {
       >
         <nav className={styles.mobileNav} aria-label="Mobile">
           {HEADER_NAV_LINKS.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className={styles.mobileLink}
               onClick={() => setOpen(false)}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
           <div className={styles.drawerActions}>
-            <Button href="/login" variant="secondary" className={styles.full}>
-              Log in
-            </Button>
-            <Button href="/signup" variant="primary" className={styles.full}>
-              Get started
-            </Button>
+            {signedIn ? (
+              <Button href="/dashboard" variant="primary" className={styles.full}>
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button href="/login" variant="secondary" className={styles.full}>
+                  Log in
+                </Button>
+                <Button href="/signup" variant="primary" className={styles.full}>
+                  Get started
+                </Button>
+              </>
+            )}
           </div>
         </nav>
       </div>

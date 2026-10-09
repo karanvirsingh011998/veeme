@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { readAuthSession } from "@/lib/auth/session";
 import {
@@ -61,14 +60,6 @@ export function MembershipScreen() {
 
   return (
     <div className={styles.page}>
-      <header className={`container ${styles.header}`}>
-        <Link href="/" className={styles.logo}>
-          Vemee
-        </Link>
-        <Link href={userId ? "/dashboard" : "/login"} className="btn btn-ghost">
-          {userId ? "Dashboard" : "Log in"}
-        </Link>
-      </header>
       <main className={`container ${styles.main}`}>
         <div className={styles.intro}>
           <p className={styles.eyebrow}>Membership</p>

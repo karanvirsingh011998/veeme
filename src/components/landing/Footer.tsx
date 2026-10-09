@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { FOOTER_LINKS } from "@/lib/constants";
 import styles from "./Footer.module.css";
 
 /**
- * Minimal marketing footer matching Veeme Refined.
+ * Public site footer — plans, membership, about, and legal.
  */
 export function Footer() {
   return (
@@ -14,9 +15,12 @@ export function Footer() {
           </span>
           Vemee
         </Link>
-        <nav className={styles.links} aria-label="Legal">
-          <Link href="/terms">Terms</Link>
-          <Link href="/privacy">Privacy</Link>
+        <nav className={styles.links} aria-label="Footer">
+          {FOOTER_LINKS.map((link) => (
+            <Link key={link.href} href={link.href}>
+              {link.label}
+            </Link>
+          ))}
         </nav>
         <p className={styles.copy}>
           © {new Date().getFullYear()} Vemee · Made for getting out more.

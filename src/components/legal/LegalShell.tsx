@@ -14,11 +14,6 @@ type LegalShellProps = {
 export function LegalShell({ title, updated, children }: LegalShellProps) {
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <Link href="/" className={styles.logo}>
-          Vemee
-        </Link>
-      </header>
       <main className={styles.main}>
         <article className={styles.article}>
           <p className={styles.eyebrow}>Legal</p>

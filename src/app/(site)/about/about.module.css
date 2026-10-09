@@ -1,0 +1,65 @@
+.page {
+  min-height: 100%;
+  background: var(--vemee-bg);
+  color: var(--vemee-ink);
+}
+
+.main {
+  max-width: 42rem;
+  padding-top: 28px;
+  padding-bottom: 48px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vemee-peach-2);
+}
+
+.main h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 44px);
+  letter-spacing: -1.2px;
+  line-height: 1.05;
+}
+
+.lead {
+  margin: 14px 0 0;
+  color: var(--vemee-muted);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.main section {
+  margin-top: 28px;
+}
+
+.main h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  letter-spacing: -0.3px;
+}
+
+.main section p,
+.main li {
+  margin: 0;
+  color: var(--vemee-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.main ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 6px;
+}
+
+.main a {
+  color: var(--vemee-peach-2);
+  font-weight: 700;
+}
