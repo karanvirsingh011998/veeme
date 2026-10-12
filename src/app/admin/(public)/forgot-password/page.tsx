@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import styles from "../../admin-auth.module.css";
 import formStyles from "@/components/admin/AdminLoginForm.module.css";
 
@@ -52,8 +53,7 @@ export default function AdminForgotPasswordPage() {
     <div className={styles.page}>
       <main className={styles.card}>
         <div className={styles.logoRow}>
-          <span className={styles.logoMark}>V</span>
-          <span className={styles.logoText}>Vemee</span>
+          <Logo height={72} />
         </div>
         <h1 className={styles.title}>Reset password</h1>
         <p className={styles.subtitle}>

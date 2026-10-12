@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/dashboard/AuthProvider";
+import { COMMUNITY_LIST } from "@/lib/dashboard/demo-data";
 import { respondToConnection, sendConnectRequest } from "@/lib/connections/service";
 import { getOrCreateDirectConversation } from "@/lib/chat/service";
 import { readApproxLocation } from "@/lib/location/geo";
@@ -23,11 +24,13 @@ import {
   selectApproxLocation,
   selectConnectionNames,
   selectConnectionsStatus,
+  selectOwnedCommunities,
   selectPendingConnections,
   selectPeople,
   selectPeopleError,
   selectPeopleStatus,
 } from "@/store/selectors/sharedSelectors";
+import { fetchOwnedCommunities } from "@/store/slices/communitiesSlice";
 import {
   fetchPeopleCards,
   fetchPeopleConnections,
@@ -36,9 +39,17 @@ import {
 } from "@/store/slices/peopleSlice";
 import styles from "../social.module.css";
 
+type PeopleView = "all" | "people" | "community";
+
+const VIEWS: { id: PeopleView; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "people", label: "People" },
+  { id: "community", label: "Community" },
+];
+
 /**
  * People you may connect with — real profiles only.
- * Incoming requests appear at the top (Accept / Decline → then Chat).
+ * All shows people and communities. Incoming requests appear at the top.
  */
 export function PeopleScreen() {
   const dispatch = useAppDispatch();
@@ -52,8 +63,12 @@ export function PeopleScreen() {
   const names = useAppSelector(selectConnectionNames);
   const peopleStatus = useAppSelector(selectPeopleStatus);
   const connectionsStatus = useAppSelector(selectConnectionsStatus);
+  const ownedCommunities = useAppSelector(selectOwnedCommunities);
   const error = useAppSelector(selectPeopleError);
+  const [view, setView] = useState<PeopleView>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const showPeople = view !== "community";
+  const showCommunities = view !== "people";
   const loading =
     people.length === 0 &&
     pending.length === 0 &&
@@ -66,6 +81,7 @@ export function PeopleScreen() {
     const loc = storedLocation ?? readApproxLocation();
     void dispatch(fetchPeopleCards({ userId, location: loc }));
     void dispatch(fetchPeopleConnections({ userId, location: loc }));
+    void dispatch(fetchOwnedCommunities({ userId }));
   }, [dispatch, storedLocation, userId]);
 
   function retry() {
@@ -135,6 +151,38 @@ export function PeopleScreen() {
         </div>
       </div>
 
+      <div className={styles.typeSwitch} role="tablist" aria-label="People or communities">
+        {VIEWS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={view === item.id}
+            className={view === item.id ? `${styles.typeTab} ${styles.typeTabOn}` : styles.typeTab}
+            onClick={() => setView(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={styles.listHead}>
+        <h2 className={styles.sectionLabel}>
+          {view === "all"
+            ? "People & communities"
+            : view === "people"
+              ? "People you may connect with"
+              : "Communities you may like"}
+        </h2>
+        <span className={styles.listCount}>
+          {view === "community"
+            ? `${ownedCommunities.length + COMMUNITY_LIST.length} communities`
+            : view === "people"
+              ? `${people.length} members`
+              : `${people.length + ownedCommunities.length + COMMUNITY_LIST.length} suggestions`}
+        </span>
+      </div>
+
       {loading && people.length === 0 && pending.length === 0 ? (
         <UserCardSkeleton count={4} />
       ) : null}
@@ -142,7 +190,7 @@ export function PeopleScreen() {
         <SectionError message={error} onRetry={retry} />
       ) : null}
 
-      {!loading && pending.length > 0 ? (
+      {showPeople && !loading && pending.length > 0 ? (
         <>
           <h2 className={styles.sectionLabel}>
             Connection requests ({pending.length})
@@ -197,7 +245,7 @@ export function PeopleScreen() {
         </>
       ) : null}
 
-      {!loading && accepted.length > 0 ? (
+      {showPeople && !loading && accepted.length > 0 ? (
         <>
           <h2 className={styles.sectionLabel}>Your connections</h2>
           <div className={styles.peopleGrid}>
@@ -239,11 +287,7 @@ export function PeopleScreen() {
         </>
       ) : null}
 
-      {!loading ? (
-        <h2 className={styles.sectionLabel}>People you may connect with</h2>
-      ) : null}
-
-      {!loading && people.length === 0 ? (
+      {showPeople && !loading && people.length === 0 ? (
         <div className={styles.empty}>
           <h3>We&apos;re finding people near you.</h3>
           <p>
@@ -265,7 +309,7 @@ export function PeopleScreen() {
             </Link>
           </div>
         </div>
-      ) : !loading ? (
+      ) : showPeople && !loading ? (
         <div className={styles.peopleGrid}>
           {people.map((person) => (
             <article key={person.id} className={styles.personCard}>
@@ -338,6 +382,62 @@ export function PeopleScreen() {
                     {busyId === person.id ? "Sending…" : "Connect"}
                   </button>
                 )}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : null}
+
+      {showCommunities ? (
+        <div className={styles.peopleGrid}>
+          {ownedCommunities.map((community) => (
+            <article key={community.id} className={styles.personCard}>
+              <div className={styles.creatorRow}>
+                <span className={styles.avatar} aria-hidden="true">
+                  {community.icon}
+                </span>
+                <div>
+                  <strong>{community.name}</strong>
+                  <p className={styles.sub} style={{ margin: 0 }}>
+                    Community · {community.memberCount}{" "}
+                    {community.memberCount === 1 ? "member" : "members"}
+                  </p>
+                </div>
+              </div>
+              {community.description ? (
+                <p className={styles.sub}>{community.description}</p>
+              ) : null}
+              <div className={styles.actions}>
+                <Link
+                  href="/dashboard/community"
+                  className={`${styles.btn} ${styles.btnSecondary}`}
+                >
+                  View community
+                </Link>
+                <span className={`${styles.btn} ${styles.btnGhost}`}>Yours</span>
+              </div>
+            </article>
+          ))}
+          {COMMUNITY_LIST.map((community) => (
+            <article key={community.name} className={styles.personCard}>
+              <div className={styles.creatorRow}>
+                <span className={styles.avatar} aria-hidden="true">
+                  {community.icon}
+                </span>
+                <div>
+                  <strong>{community.name}</strong>
+                  <p className={styles.sub} style={{ margin: 0 }}>
+                    Community · {community.members}
+                  </p>
+                </div>
+              </div>
+              <div className={styles.actions}>
+                <Link
+                  href="/dashboard/community"
+                  className={`${styles.btn} ${styles.btnSecondary}`}
+                >
+                  View community
+                </Link>
               </div>
             </article>
           ))}

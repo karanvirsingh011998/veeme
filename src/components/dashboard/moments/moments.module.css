@@ -1,0 +1,346 @@
+.page {
+  width: min(100%, 560px);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 16px 16px 28px;
+}
+
+@media (min-width: 1024px) {
+  .page {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0;
+    padding: 28px 40px 48px;
+  }
+
+  .feed {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.head p {
+  margin: 4px 0 0;
+  color: var(--vemee-muted);
+  font-size: 14px;
+}
+
+.post {
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  background: var(--vemee-peach);
+  color: #fff;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.composerRow {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid var(--vemee-line);
+  border-radius: 18px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--vemee-peach-soft);
+  color: var(--vemee-peach-2);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  flex: none;
+}
+
+.prompt,
+.photoBtn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.prompt {
+  flex: 1;
+  text-align: left;
+  border-radius: 999px;
+  background: var(--vemee-bg);
+  padding: 12px 16px;
+  color: var(--vemee-muted);
+  font-size: 14px;
+}
+
+.photoBtn {
+  color: var(--vemee-peach);
+  width: 36px;
+  height: 36px;
+}
+
+.feed {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--vemee-line);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+
+.smallAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fde7d8;
+  color: var(--vemee-peach-2);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  flex: none;
+}
+
+.cardHead p {
+  margin: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--vemee-muted);
+}
+
+.badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: #fff4ee;
+  color: var(--vemee-peach-2);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  max-height: 430px;
+  object-fit: cover;
+}
+
+.cardBody {
+  padding: 12px;
+}
+
+.cardBody p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.action {
+  border: 0;
+  background: transparent;
+  color: var(--vemee-muted);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  padding: 0;
+}
+
+.actionLiked {
+  color: var(--vemee-peach);
+}
+
+.share {
+  margin-left: auto;
+}
+
+.comments {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.comment {
+  margin: 0;
+  font-size: 13px;
+  color: var(--vemee-ink);
+}
+
+.comment span {
+  color: var(--vemee-muted);
+  font-weight: 500;
+}
+
+.commentForm {
+  display: flex;
+  gap: 8px;
+}
+
+.commentForm input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--vemee-line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--vemee-bg);
+}
+
+.commentForm button,
+.submit {
+  border: 0;
+  border-radius: 999px;
+  background: var(--vemee-peach);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.commentForm button {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.empty {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid var(--vemee-line);
+  border-radius: 18px;
+  padding: 20px 16px;
+  color: var(--vemee-muted);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  width: min(100%, 380px);
+  background: var(--vemee-bg);
+  border-radius: 24px;
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalHead h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--vemee-line);
+  background: #fff;
+  cursor: pointer;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vemee-muted);
+}
+
+.field textarea,
+.field input,
+.field select {
+  width: 100%;
+  border: 1px solid var(--vemee-line);
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--vemee-ink);
+  background: #fff;
+}
+
+.submit {
+  min-height: 46px;
+  font-size: 15px;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+}
+
+.error {
+  margin: 0;
+  color: #9a3412;
+  font-size: 13px;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--vemee-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.note a {
+  color: var(--vemee-peach-2);
+  font-weight: 700;
+}

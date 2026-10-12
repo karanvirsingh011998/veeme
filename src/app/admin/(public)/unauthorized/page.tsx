@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "../../admin-auth.module.css";
+import { Logo } from "@/components/ui/Logo";
 
 export const metadata = {
   title: "Access denied — Vemee Admin",
@@ -10,8 +11,7 @@ export default function AdminUnauthorizedPage() {
     <div className={styles.page}>
       <main className={styles.card}>
         <div className={styles.logoRow}>
-          <span className={styles.logoMark}>V</span>
-          <span className={styles.logoText}>Vemee</span>
+          <Logo height={72} />
         </div>
         <h1 className={styles.title}>Access denied</h1>
         <p className={styles.subtitle}>

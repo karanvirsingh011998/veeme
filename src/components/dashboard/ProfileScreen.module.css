@@ -310,3 +310,11 @@
     font-size: 38px;
   }
 }
+
+@media (min-width: 1024px) {
+  .page {
+    max-width: 760px;
+    margin: 0;
+    padding: 28px 40px 48px;
+  }
+}

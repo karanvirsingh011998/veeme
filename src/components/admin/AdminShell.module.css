@@ -116,6 +116,10 @@
   font-weight: 900;
 }
 
+.brand img {
+  border-radius: 12px;
+}
+
 .brand strong {
   display: block;
   font-size: 18px;

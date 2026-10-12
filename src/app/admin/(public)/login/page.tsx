@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
+import { Logo } from "@/components/ui/Logo";
 import styles from "../../admin-auth.module.css";
 
 export const metadata = {
@@ -12,8 +13,7 @@ export default function AdminLoginPage() {
     <div className={styles.page}>
       <main className={styles.card}>
         <div className={styles.logoRow}>
-          <span className={styles.logoMark}>V</span>
-          <span className={styles.logoText}>Vemee</span>
+          <Logo height={72} />
         </div>
         <h1 className={styles.title}>Admin Login</h1>
         <p className={styles.subtitle}>Sign in to admin dashboard</p>

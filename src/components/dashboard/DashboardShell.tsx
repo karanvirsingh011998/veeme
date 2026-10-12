@@ -47,6 +47,7 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
       <div className={styles.mainCol}>
         <div
           className={`${styles.scroll} ${chatThread ? styles.scrollFlush : ""}`}
+          data-app-scroll=""
         >
           <div key={pathname} className={styles.pageIn}>
             {children}

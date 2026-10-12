@@ -6,20 +6,24 @@
   .sidebar {
     display: flex;
     flex-direction: column;
-    width: 240px;
+    width: 248px;
     flex: none;
-    padding: 28px 20px;
+    padding: 24px 18px;
     border-right: 1px solid var(--vemee-line);
     background: var(--vemee-surface);
-    min-height: 100dvh;
+    height: 100dvh;
+    overflow: auto;
     position: sticky;
     top: 0;
   }
 
   .logo {
-    font-size: 24px;
-    font-weight: 900;
-    letter-spacing: -0.9px;
+    display: inline-flex;
+    line-height: 0;
+  }
+
+  .logo img {
+    border-radius: 12px;
   }
 
   .welcome {

@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth/config";
+import { listStoredCommunities } from "@/lib/communities/store";
 import { invalidateCache, loadSwr } from "@/lib/cache/client-cache";
 import { PLAN_CATEGORIES } from "./types";
 import type {
@@ -108,6 +109,17 @@ export async function createPlan(
   if (!input.date) return { ok: false, error: "Pick a date." };
   if (!input.time) return { ok: false, error: "Pick a time." };
   if (!locationLabel) return { ok: false, error: "Add a meetup location." };
+  if (input.visibility === "community" && !input.communityId) {
+    return { ok: false, error: "Choose one of your communities." };
+  }
+  if (
+    input.visibility === "community" &&
+    input.communityId &&
+    !useRemotePlans() &&
+    !listStoredCommunities(input.creatorId).some((item) => item.id === input.communityId)
+  ) {
+    return { ok: false, error: "You can only post to a community you created." };
+  }
 
   if (useRemotePlans()) {
     const res = await fetch("/api/plans", {
@@ -145,6 +157,7 @@ export async function createPlan(
     lng: input.lng ?? null,
     peopleNeeded: input.peopleNeeded,
     visibility: input.visibility,
+    communityId: input.visibility === "community" ? input.communityId || null : null,
     createdAt: now,
     updatedAt: now,
   };

@@ -4,13 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import { useChatUnread } from "@/components/dashboard/chat/ChatUnreadProvider";
+import { Logo } from "@/components/ui/Logo";
 import styles from "./DesktopSidebar.module.css";
 
 const LINKS = [
   { href: "/dashboard", label: "Home", exact: true },
+  { href: "/dashboard/moments", label: "Moments" },
   { href: "/dashboard/explore", label: "Explore" },
   { href: "/dashboard/plans/new", label: "Create Plan" },
   { href: "/dashboard/people", label: "People" },
+  { href: "/dashboard/community", label: "Community" },
   { href: "/dashboard/chat", label: "Chat" },
   { href: "/dashboard/profile", label: "Profile" },
 ];
@@ -26,8 +29,8 @@ export function DesktopSidebar() {
 
   return (
     <aside className={styles.sidebar}>
-      <Link href="/dashboard" className={styles.logo}>
-        Vemee
+      <Link href="/dashboard" className={styles.logo} aria-label="Vemee home">
+        <Logo height={52} />
       </Link>
       <p className={styles.welcome}>Hi, {name}</p>
       <nav className={styles.nav} aria-label="Desktop">

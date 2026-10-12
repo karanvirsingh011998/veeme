@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./AdminShell.module.css";
+import { Logo } from "@/components/ui/Logo";
 
 const NAV = [
   { href: "/admin", label: "Overview", exact: true as const },
@@ -50,9 +51,8 @@ export function AdminShell({ email, children }: AdminShellProps) {
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         <Link href="/admin" className={styles.brand}>
-          <span className={styles.logoMark}>V</span>
+          <Logo height={48} />
           <span>
-            <strong>Vemee</strong>
             <small>Admin</small>
           </span>
         </Link>

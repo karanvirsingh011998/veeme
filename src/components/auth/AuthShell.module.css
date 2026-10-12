@@ -29,6 +29,12 @@
   padding: 28px 20px 24px;
 }
 
+.logo {
+  display: block;
+  margin: 0 auto 12px;
+  border-radius: 18px;
+}
+
 .title {
   margin: 0;
   font-size: clamp(28px, 6vw, 34px);

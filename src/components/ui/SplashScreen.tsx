@@ -1,3 +1,4 @@
+import { Logo } from "@/components/ui/Logo";
 import styles from "./SplashScreen.module.css";
 
 type SplashScreenProps = {
@@ -23,10 +24,7 @@ export function SplashScreen({
     >
       <div className={styles.glow} aria-hidden="true" />
       <div className={styles.brand}>
-        <span className={styles.mark} aria-hidden="true">
-          v
-        </span>
-        <p className={styles.wordmark}>Vemee</p>
+        <Logo height={168} priority className={styles.logo} />
         <p className={styles.tagline}>Find your people. Do more together.</p>
       </div>
       <div className={styles.footer}>

@@ -1,14 +1,13 @@
 .bottom {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  flex: none;
+  width: 100%;
   height: calc(70px + env(safe-area-inset-bottom));
   padding: 5px 7px calc(5px + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.98);
   border-top: 1px solid var(--vemee-line);
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   z-index: 40;
   box-shadow: 0 -4px 18px rgba(45, 33, 28, 0.045);
 }
@@ -25,6 +24,7 @@
   justify-content: center;
   gap: 3px;
   min-width: 0;
+  max-width: 100%;
   text-decoration: none;
   transition: color 0.16s ease;
 }
@@ -57,13 +57,19 @@
   background: var(--vemee-peach-soft);
 }
 
-.create .navIcon {
-  background: var(--vemee-peach);
-  color: #fff;
+.create {
+  color: var(--vemee-ink);
+  margin-top: -18px;
 }
 
-.create {
-  color: var(--vemee-peach-2);
+.create .navIcon,
+.create.active .navIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--vemee-peach);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(215, 126, 73, 0.35);
 }
 
 .badge {

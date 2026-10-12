@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/dashboard/AuthProvider";
+import { CommunityPicker } from "@/components/dashboard/community/CommunityPicker";
 import { PLAN_CATEGORIES, type PeopleNeeded, type PlanCategoryId, type PlanVisibility } from "@/lib/plans/types";
 import { createPlan } from "@/lib/plans/service";
 import { readApproxLocation } from "@/lib/location/geo";
@@ -27,6 +28,7 @@ export function CreatePlanScreen() {
   );
   const [peopleNeeded, setPeopleNeeded] = useState<PeopleNeeded>(3);
   const [visibility, setVisibility] = useState<PlanVisibility>("public");
+  const [communityId, setCommunityId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [successId, setSuccessId] = useState<string | null>(null);
@@ -52,6 +54,7 @@ export function CreatePlanScreen() {
       lng: loc?.lng ?? null,
       peopleNeeded,
       visibility,
+      communityId: visibility === "community" ? communityId : null,
     });
     setBusy(false);
     if (!result.ok) {
@@ -195,15 +198,25 @@ export function CreatePlanScreen() {
             <select
               className={styles.select}
               value={visibility}
-              onChange={(e) =>
-                setVisibility(e.target.value as PlanVisibility)
-              }
+              onChange={(e) => {
+                const next = e.target.value as PlanVisibility;
+                setVisibility(next);
+                if (next !== "community") setCommunityId("");
+              }}
             >
               <option value="public">Public</option>
               <option value="community">Community</option>
             </select>
           </label>
         </div>
+
+        {visibility === "community" ? (
+          <CommunityPicker
+            userId={userId}
+            value={communityId}
+            onChange={setCommunityId}
+          />
+        ) : null}
 
         {error ? <p className={styles.error}>{error}</p> : null}
 

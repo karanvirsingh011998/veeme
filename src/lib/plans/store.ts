@@ -19,9 +19,9 @@ function writeJson(key: string, value: unknown) {
 }
 
 export function listStoredPlans(): ActivityPlan[] {
-  return readJson<ActivityPlan[]>(PLANS_KEY, []).sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
-  );
+  return readJson<ActivityPlan[]>(PLANS_KEY, [])
+    .map((plan) => ({ ...plan, communityId: plan.communityId ?? null }))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export function getStoredPlan(id: string): ActivityPlan | null {

@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   title: "Vemee — Find your people. Do more together.",
   description:
     "Someone’s already holding a spot. See what’s happening near you and roll in — no awkward firsts, just good company.",
+  icons: {
+    icon: [{ url: "/images/logo.jpg", type: "image/jpeg" }],
+    apple: [{ url: "/images/logo.jpg", type: "image/jpeg" }],
+    shortcut: ["/images/logo.jpg"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

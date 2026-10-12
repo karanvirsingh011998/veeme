@@ -20,6 +20,11 @@ export const selectPeoplePreview = createSelector(selectPeople, (items) => items
 
 export const selectCommunities = (state: RootState) => state.communities.items;
 
+export const selectOwnedCommunities = (state: RootState) => state.communities.owned;
+
+export const selectOwnedCommunitiesStatus = (state: RootState) =>
+  state.communities.ownedStatus;
+
 export const selectNotifications = (state: RootState) => state.notifications.items;
 
 export const selectNotificationStatus = (state: RootState) => state.notifications.status;

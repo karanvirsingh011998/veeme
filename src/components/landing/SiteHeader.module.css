@@ -43,6 +43,11 @@
   flex: 1 1 auto;
 }
 
+.logo img {
+  border-radius: 12px;
+  flex: none;
+}
+
 .brand {
   display: grid;
   gap: 1px;

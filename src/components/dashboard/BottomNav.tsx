@@ -18,16 +18,13 @@ const TABS = [
     ),
   },
   {
-    href: "/dashboard/explore",
-    label: "Explore",
-    match: (path: string) =>
-      path.startsWith("/dashboard/explore") ||
-      path.startsWith("/dashboard/discover") ||
-      (path.startsWith("/dashboard/plans/") && !path.includes("/new")),
+    href: "/dashboard/moments",
+    label: "Moments",
+    match: (path: string) => path.startsWith("/dashboard/moments"),
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="10.8" cy="10.8" r="6.2" />
-        <path d="m16 16 4.4 4.4" />
+        <circle cx="12" cy="12" r="8" />
+        <path d="M10.2 9.2v5.6l4.8-2.8-4.8-2.8Z" />
       </svg>
     ),
   },
@@ -80,7 +77,7 @@ const TABS = [
 ] as const;
 
 /**
- * Mobile bottom navigation — Home, Explore, Create, People, Chat, Profile.
+ * Mobile bottom navigation — Home, Moments, Create, People, Chat, Profile.
  */
 export function BottomNav() {
   const pathname = usePathname();

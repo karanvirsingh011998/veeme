@@ -40,6 +40,8 @@ export type ActivityPlan = {
   lng?: number | null;
   peopleNeeded: PeopleNeeded;
   visibility: PlanVisibility;
+  /** Set when the plan is posted to a community the creator owns. */
+  communityId: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -64,6 +66,7 @@ export type CreatePlanInput = {
   lng?: number | null;
   peopleNeeded: PeopleNeeded;
   visibility: PlanVisibility;
+  communityId?: string | null;
 };
 
 export type PlanFilters = {

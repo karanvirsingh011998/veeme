@@ -1,3 +1,4 @@
+import { sbCommunityOwnedBy } from "@/lib/communities/supabase";
 import { getDataClient } from "@/lib/supabase/data";
 import type {
   ActivityPlan,
@@ -21,12 +22,20 @@ type DbPlan = {
   lng: number | null;
   people_needed: number;
   visibility: "public" | "community";
+  community_id?: string | null;
   created_at: string;
   updated_at: string;
 };
 
 const PLAN_COLUMNS =
+  "id, creator_id, category, title, description, image_key, image_url, plan_date, plan_time, location_label, city, lat, lng, people_needed, visibility, community_id, created_at, updated_at";
+
+const PLAN_COLUMNS_LEGACY =
   "id, creator_id, category, title, description, image_key, image_url, plan_date, plan_time, location_label, city, lat, lng, people_needed, visibility, created_at, updated_at";
+
+function missingCommunityColumn(error: { message: string } | null | undefined) {
+  return Boolean(error && /community_id/i.test(error.message));
+}
 
 const PARTICIPANT_COLUMNS = "plan_id, user_id, status, joined_at";
 
@@ -47,6 +56,7 @@ function mapPlan(row: DbPlan): ActivityPlan {
     lng: row.lng,
     peopleNeeded: row.people_needed as ActivityPlan["peopleNeeded"],
     visibility: row.visibility,
+    communityId: row.community_id ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -61,28 +71,59 @@ export async function sbCreatePlan(
   const db = getDataClient();
   if (!db) return { ok: false, error: "Supabase is not configured." };
 
-  const { data, error } = await db
+  if (input.visibility === "community") {
+    if (!input.communityId) {
+      return { ok: false, error: "Choose one of your communities." };
+    }
+    const owned = await sbCommunityOwnedBy(input.communityId, input.creatorId);
+    if (!owned) {
+      return { ok: false, error: "You can only post to a community you created." };
+    }
+  }
+
+  const row = {
+    creator_id: input.creatorId,
+    category: input.category,
+    title: input.title.trim(),
+    description: input.description.trim(),
+    image_key: input.category,
+    image_url: null,
+    plan_date: input.date,
+    plan_time: input.time,
+    location_label: input.locationLabel.trim(),
+    city: input.city ?? null,
+    lat: input.lat ?? null,
+    lng: input.lng ?? null,
+    people_needed: input.peopleNeeded,
+    visibility: input.visibility,
+    community_id:
+      input.visibility === "community" ? input.communityId || null : null,
+  };
+
+  let { data, error } = await db
     .from("activity_plans")
-    .insert({
-      creator_id: input.creatorId,
-      category: input.category,
-      title: input.title.trim(),
-      description: input.description.trim(),
-      image_key: input.category,
-      image_url: null,
-      plan_date: input.date,
-      plan_time: input.time,
-      location_label: input.locationLabel.trim(),
-      city: input.city ?? null,
-      lat: input.lat ?? null,
-      lng: input.lng ?? null,
-      people_needed: input.peopleNeeded,
-      visibility: input.visibility,
-    })
+    .insert(row)
     .select(PLAN_COLUMNS)
     .single();
 
+  if (missingCommunityColumn(error) && !row.community_id) {
+    const { community_id: _ignored, ...legacy } = row;
+    const retry = await db
+      .from("activity_plans")
+      .insert(legacy)
+      .select(PLAN_COLUMNS_LEGACY)
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
+
   if (error || !data) {
+    if (missingCommunityColumn(error)) {
+      return {
+        ok: false,
+        error: "Run the community migration before posting to a community.",
+      };
+    }
     return { ok: false, error: error?.message || "Could not create plan." };
   }
 
@@ -133,6 +174,24 @@ export async function sbListPlans(
   if (query.dateTo) request = request.lte("plan_date", query.dateTo);
 
   const { data, error } = await request.range(offset, offset + limit);
+  if (missingCommunityColumn(error)) {
+    let legacy = db
+      .from("activity_plans")
+      .select(PLAN_COLUMNS_LEGACY)
+      .order("created_at", { ascending: false }) as unknown as typeof request;
+    if (query.category && query.category !== "all") {
+      legacy = legacy.eq("category", query.category);
+    }
+    if (query.dateFrom) legacy = legacy.gte("plan_date", query.dateFrom);
+    if (query.dateTo) legacy = legacy.lte("plan_date", query.dateTo);
+    const retry = await legacy.range(offset, offset + limit);
+    if (retry.error || !retry.data) return { plans: [], hasMore: false };
+    const rows = retry.data as DbPlan[];
+    return {
+      plans: rows.slice(0, limit).map(mapPlan),
+      hasMore: rows.length > limit,
+    };
+  }
   if (error || !data) return { plans: [], hasMore: false };
 
   const rows = data as DbPlan[];
@@ -150,20 +209,27 @@ export async function sbListPlansForMember(
   const db = getDataClient();
   if (!db) return { plans: [], participants: [] };
 
-  const [{ data: created }, { data: joined }] = await Promise.all([
-    db
+  let createdResult = await db
+    .from("activity_plans")
+    .select(PLAN_COLUMNS)
+    .eq("creator_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (missingCommunityColumn(createdResult.error)) {
+    createdResult = await db
       .from("activity_plans")
-      .select(PLAN_COLUMNS)
+      .select(PLAN_COLUMNS_LEGACY)
       .eq("creator_id", userId)
       .order("created_at", { ascending: false })
-      .limit(20),
-    db
-      .from("plan_participants")
-      .select(PARTICIPANT_COLUMNS)
-      .eq("user_id", userId)
-      .eq("status", "joined")
-      .limit(40),
-  ]);
+      .limit(20);
+  }
+  const created = createdResult.data;
+  const { data: joined } = await db
+    .from("plan_participants")
+    .select(PARTICIPANT_COLUMNS)
+    .eq("user_id", userId)
+    .eq("status", "joined")
+    .limit(40);
 
   const createdPlans = ((created || []) as DbPlan[]).map(mapPlan);
   const joinedRows = mapParticipants(joined);
@@ -174,11 +240,17 @@ export async function sbListPlansForMember(
 
   let extraPlans: ActivityPlan[] = [];
   if (extraIds.length > 0) {
-    const { data } = await db
+    let extra = await db
       .from("activity_plans")
       .select(PLAN_COLUMNS)
       .in("id", extraIds);
-    extraPlans = ((data || []) as DbPlan[]).map(mapPlan);
+    if (missingCommunityColumn(extra.error)) {
+      extra = await db
+        .from("activity_plans")
+        .select(PLAN_COLUMNS_LEGACY)
+        .in("id", extraIds);
+    }
+    extraPlans = ((extra.data || []) as DbPlan[]).map(mapPlan);
   }
 
   const plans = [...createdPlans, ...extraPlans];
@@ -189,12 +261,19 @@ export async function sbListPlansForMember(
 export async function sbGetPlan(id: string): Promise<ActivityPlan | null> {
   const db = getDataClient();
   if (!db) return null;
-  const { data } = await db
+  let result = await db
     .from("activity_plans")
     .select(PLAN_COLUMNS)
     .eq("id", id)
     .maybeSingle();
-  return data ? mapPlan(data as DbPlan) : null;
+  if (missingCommunityColumn(result.error)) {
+    result = await db
+      .from("activity_plans")
+      .select(PLAN_COLUMNS_LEGACY)
+      .eq("id", id)
+      .maybeSingle();
+  }
+  return result.data ? mapPlan(result.data as DbPlan) : null;
 }
 
 function mapParticipants(

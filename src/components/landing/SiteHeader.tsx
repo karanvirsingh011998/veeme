@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { HEADER_NAV_LINKS } from "@/lib/constants";
 import { readAuthSession } from "@/lib/auth/session";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import styles from "./SiteHeader.module.css";
 
 /**
@@ -43,13 +44,8 @@ export function SiteHeader() {
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ""}`}>
       <div className={`container ${styles.inner}`}>
         <Link href="/" className={styles.logo}>
-          <span className={styles.mark} aria-hidden="true">
-            v
-          </span>
-          <span className={styles.brand}>
-            <span className={styles.wordmark}>Vemee</span>
-            <span className={styles.tagline}>Plans are happening near you today</span>
-          </span>
+          <Logo height={52} priority />
+          <span className={styles.tagline}>Plans are happening near you today</span>
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Primary">

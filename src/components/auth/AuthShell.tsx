@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Logo } from "@/components/ui/Logo";
 import styles from "./AuthShell.module.css";
 
 type AuthShellProps = {
@@ -23,6 +24,7 @@ export function AuthShell({
     <div className={styles.page}>
       <main className={styles.main}>
         <div className={`${styles.card} ${wide ? styles.cardWide : ""}`}>
+          <Logo height={88} className={styles.logo} />
           <h1 className={styles.title}>{title}</h1>
           {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
           {children}
