@@ -2,6 +2,46 @@
   padding: 0 0 24px;
 }
 
+.chats {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 22px 19px 30px;
+}
+
+.pageHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.pageHead h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+
+.pageHead p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: var(--vemee-muted);
+}
+
+.threadList {
+  padding-top: 4px;
+}
+
+@media (min-width: 1024px) {
+  .chats {
+    width: min(100%, 880px);
+    padding: 28px 36px 48px;
+  }
+}
+
 .header {
   height: 52px;
   padding: 8px 16px;
@@ -17,15 +57,16 @@
 }
 
 .iconBtn {
-  width: 36px;
-  height: 36px;
+  width: 43px;
+  height: 43px;
   border-radius: 50%;
   border: 1px solid var(--vemee-line);
   background: #fff;
   display: grid;
   place-items: center;
-  color: var(--vemee-ink);
-  font-size: 14px;
+  color: #54433b;
+  font-size: 18px;
+  text-decoration: none;
 }
 
 .content {
@@ -375,11 +416,13 @@
   gap: 12px;
   background: #fff;
   border: 1px solid var(--vemee-line);
-  border-radius: 14px;
-  padding: 12px;
-  margin: 8px 0;
+  border-radius: 16px;
+  padding: 13px;
+  margin: 10px 0 0;
   text-align: left;
   color: var(--vemee-ink);
+  text-decoration: none;
+  box-shadow: var(--shadow-card);
 }
 
 .listBtnUnread {
@@ -388,13 +431,15 @@
 }
 
 .listIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: #e5eee9;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #f3d9cb;
+  color: #88523a;
   display: grid;
   place-items: center;
-  font-size: 22px;
+  font-size: 16px;
+  font-weight: 800;
   flex: none;
 }
 

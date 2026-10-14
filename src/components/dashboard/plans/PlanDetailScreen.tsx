@@ -203,12 +203,11 @@ export function PlanDetailScreen({ planId }: PlanDetailScreenProps) {
   return (
     <div className={styles.page}>
       <p className={styles.sub}>
-        <Link href="/dashboard/explore">← Explore</Link>
+        <Link href="/dashboard">← Discover</Link>
       </p>
 
-      <div className={styles.detailHero}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={plan.image} alt="" />
+      <div className={styles.planHero} aria-hidden="true">
+        <span>{plan.categoryIcon}</span>
       </div>
 
       <span className={styles.category}>

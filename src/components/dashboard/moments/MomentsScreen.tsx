@@ -61,7 +61,7 @@ export function MomentsScreen() {
       <header className={styles.head}>
         <div>
           <h1>Moments</h1>
-          <p>Photos, little updates and stories from your community.</p>
+          <p>Photos, stories and little wins from the Vemee community.</p>
         </div>
         <button type="button" className={styles.post} onClick={() => setOpen(true)}>
           + Post

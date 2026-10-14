@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function ExplorePage() {
   return (
-    <div style={{ padding: "16px 16px 28px", maxWidth: 960, margin: "0 auto" }}>
+    <div style={{ padding: "22px 19px 30px", maxWidth: 1080, margin: "0 auto" }}>
       <ExplorePlansScreen />
     </div>
   );

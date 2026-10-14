@@ -4,16 +4,17 @@
 
 .bell {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 43px;
+  height: 43px;
   border-radius: 50%;
   border: 1px solid var(--vemee-line);
   background: #fff;
   display: grid;
   place-items: center;
-  color: var(--vemee-ink);
+  color: #54433b;
   padding: 0;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .icon {
@@ -23,18 +24,18 @@
 
 .badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 999px;
+  right: 9px;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  min-width: 7px;
+  padding: 0;
+  border-radius: 50%;
   background: var(--vemee-peach);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 16px;
-  text-align: center;
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
 }
 
 .panel {

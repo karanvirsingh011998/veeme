@@ -39,12 +39,11 @@ import {
 } from "@/store/slices/peopleSlice";
 import styles from "../social.module.css";
 
-type PeopleView = "all" | "people" | "community";
+type PeopleView = "people" | "community";
 
 const VIEWS: { id: PeopleView; label: string }[] = [
-  { id: "all", label: "All" },
   { id: "people", label: "People" },
-  { id: "community", label: "Community" },
+  { id: "community", label: "Communities" },
 ];
 
 /**
@@ -65,7 +64,7 @@ export function PeopleScreen() {
   const connectionsStatus = useAppSelector(selectConnectionsStatus);
   const ownedCommunities = useAppSelector(selectOwnedCommunities);
   const error = useAppSelector(selectPeopleError);
-  const [view, setView] = useState<PeopleView>("all");
+  const [view, setView] = useState<PeopleView>("people");
   const [busyId, setBusyId] = useState<string | null>(null);
   const showPeople = view !== "community";
   const showCommunities = view !== "people";
@@ -144,9 +143,9 @@ export function PeopleScreen() {
       <LocationPrompt />
       <div className={styles.headerRow}>
         <div>
-          <h1 className={styles.title}>People</h1>
+          <h1 className={styles.title}>Meet people</h1>
           <p className={styles.sub}>
-            Connection requests show here. Accept to open chat.
+            Connect through shared interests and activities.
           </p>
         </div>
       </div>
@@ -168,18 +167,12 @@ export function PeopleScreen() {
 
       <div className={styles.listHead}>
         <h2 className={styles.sectionLabel}>
-          {view === "all"
-            ? "People & communities"
-            : view === "people"
-              ? "People you may connect with"
-              : "Communities you may like"}
+          {view === "people" ? "People you may connect with" : "Communities you may like"}
         </h2>
         <span className={styles.listCount}>
           {view === "community"
             ? `${ownedCommunities.length + COMMUNITY_LIST.length} communities`
-            : view === "people"
-              ? `${people.length} members`
-              : `${people.length + ownedCommunities.length + COMMUNITY_LIST.length} suggestions`}
+            : `${people.length} members`}
         </span>
       </div>
 
@@ -310,78 +303,76 @@ export function PeopleScreen() {
           </div>
         </div>
       ) : showPeople && !loading ? (
-        <div className={styles.peopleGrid}>
+        <div className={styles.photoGrid}>
           {people.map((person) => (
-            <article key={person.id} className={styles.personCard}>
-              <div className={styles.creatorRow}>
-                <span className={styles.avatar}>
-                  {(person.name[0] || "V").toUpperCase()}
-                </span>
-                <div>
-                  <strong>{person.name}</strong>
-                  <p className={styles.sub} style={{ margin: 0 }}>
-                    {person.distanceLabel
-                      ? `📍 ${person.distanceLabel}`
-                      : "Location not set"}
-                    {person.verified ? " · Verified" : ""}
-                  </p>
+            <article key={person.id} className={styles.photoCard}>
+              <Link href={`/dashboard/people/${person.id}`} className={styles.photo}>
+                {person.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={person.avatarUrl} alt="" />
+                ) : (
+                  <span className={styles.photoFallback}>
+                    {(person.name[0] || "V").toUpperCase()}
+                  </span>
+                )}
+                <span className={styles.online} aria-hidden="true" />
+                {person.interests[0] ? (
+                  <span className={styles.photoTag}>{person.interests[0]}</span>
+                ) : null}
+              </Link>
+              <div className={styles.photoBody}>
+                <h3>{person.name}</h3>
+                <div className={styles.photoArea}>
+                  {person.distanceLabel || person.city || "Nearby"}
+                  {person.verified ? " · Verified" : ""}
                 </div>
-              </div>
-              {person.interests.length > 0 ? (
-                <div className={styles.interestChips}>
-                  {person.interests.map((interest) => (
-                    <span key={interest} className={styles.chip}>
-                      {interest}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-              <p className={styles.sub}>
-                {person.bio ||
-                  "Looking for people to do activities and explore together."}
-              </p>
-              <PersonRating
-                value={person.viewerRating}
-                onChange={(tier) => void onRate(person.id, tier)}
-              />
-              <div className={styles.actions}>
-                <Link
-                  href={`/dashboard/people/${person.id}`}
-                  className={`${styles.btn} ${styles.btnSecondary}`}
-                >
-                  View Profile
-                </Link>
-                {person.connectionStatus === "connected" ? (
-                  <>
-                    <span className={`${styles.btn} ${styles.btnGhost}`}>
-                      Connected ✓
-                    </span>
+                <p>
+                  {person.bio ||
+                    "Looking for people to do activities and explore together."}
+                </p>
+                {person.interests.length > 0 ? (
+                  <div className={styles.interestChips}>
+                    {person.interests.slice(0, 2).map((interest) => (
+                      <span key={interest} className={styles.chip}>
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                <PersonRating
+                  value={person.viewerRating}
+                  onChange={(tier) => void onRate(person.id, tier)}
+                />
+                <div className={styles.photoActions}>
+                  {person.connectionStatus === "connected" ? (
                     <button
                       type="button"
-                      className={`${styles.btn} ${styles.btnPrimary}`}
+                      className={`${styles.btn} ${styles.btnGhost}`}
                       onClick={() => void onChat(person.id)}
                     >
                       Chat
                     </button>
-                  </>
-                ) : person.connectionStatus === "pending_sent" ? (
-                  <span className={`${styles.btn} ${styles.btnGhost}`}>
-                    Request Sent
-                  </span>
-                ) : person.connectionStatus === "pending_received" ? (
-                  <span className={`${styles.btn} ${styles.btnGhost}`}>
-                    Respond above
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    className={`${styles.btn} ${styles.btnPrimary}`}
-                    disabled={busyId === person.id}
-                    onClick={() => void onConnect(person.id)}
+                  ) : person.connectionStatus === "pending_sent" ? (
+                    <span className={`${styles.btn} ${styles.btnGhost}`}>Pending</span>
+                  ) : person.connectionStatus === "pending_received" ? (
+                    <span className={`${styles.btn} ${styles.btnGhost}`}>Respond</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`${styles.btn} ${styles.btnPrimary}`}
+                      disabled={busyId === person.id}
+                      onClick={() => void onConnect(person.id)}
+                    >
+                      {busyId === person.id ? "…" : "Connect"}
+                    </button>
+                  )}
+                  <Link
+                    href={`/dashboard/people/${person.id}`}
+                    className={`${styles.btn} ${styles.btnSecondary}`}
                   >
-                    {busyId === person.id ? "Sending…" : "Connect"}
-                  </button>
-                )}
+                    Profile
+                  </Link>
+                </div>
               </div>
             </article>
           ))}
@@ -389,54 +380,42 @@ export function PeopleScreen() {
       ) : null}
 
       {showCommunities ? (
-        <div className={styles.peopleGrid}>
+        <div className={styles.communityGrid}>
           {ownedCommunities.map((community) => (
-            <article key={community.id} className={styles.personCard}>
-              <div className={styles.creatorRow}>
-                <span className={styles.avatar} aria-hidden="true">
-                  {community.icon}
-                </span>
-                <div>
-                  <strong>{community.name}</strong>
-                  <p className={styles.sub} style={{ margin: 0 }}>
-                    Community · {community.memberCount}{" "}
-                    {community.memberCount === 1 ? "member" : "members"}
-                  </p>
-                </div>
+            <article key={community.id} className={styles.communityTile}>
+              <div className={styles.communityCover}>
+                <span>{community.icon}</span>
               </div>
-              {community.description ? (
-                <p className={styles.sub}>{community.description}</p>
-              ) : null}
-              <div className={styles.actions}>
-                <Link
-                  href="/dashboard/community"
-                  className={`${styles.btn} ${styles.btnSecondary}`}
-                >
-                  View community
-                </Link>
-                <span className={`${styles.btn} ${styles.btnGhost}`}>Yours</span>
+              <div className={styles.communityBody}>
+                <div className={styles.communityKicker}>Member</div>
+                <h3>{community.name}</h3>
+                <p>
+                  {community.description ||
+                    `${community.memberCount} ${community.memberCount === 1 ? "member" : "members"}`}
+                </p>
+                <div className={styles.photoActions}>
+                  <Link href="/dashboard/community" className={`${styles.btn} ${styles.btnSecondary}`}>
+                    Explore
+                  </Link>
+                  <span className={`${styles.btn} ${styles.btnGhost}`}>Joined</span>
+                </div>
               </div>
             </article>
           ))}
           {COMMUNITY_LIST.map((community) => (
-            <article key={community.name} className={styles.personCard}>
-              <div className={styles.creatorRow}>
-                <span className={styles.avatar} aria-hidden="true">
-                  {community.icon}
-                </span>
-                <div>
-                  <strong>{community.name}</strong>
-                  <p className={styles.sub} style={{ margin: 0 }}>
-                    Community · {community.members}
-                  </p>
-                </div>
+            <article key={community.name} className={styles.communityTile}>
+              <div className={styles.communityCover}>
+                <span>{community.icon}</span>
               </div>
-              <div className={styles.actions}>
+              <div className={styles.communityBody}>
+                <div className={styles.communityKicker}>Discover community</div>
+                <h3>{community.name}</h3>
+                <p>{community.members}</p>
                 <Link
                   href="/dashboard/community"
-                  className={`${styles.btn} ${styles.btnSecondary}`}
+                  className={`${styles.btn} ${styles.btnPrimary}`}
                 >
-                  View community
+                  Explore
                 </Link>
               </div>
             </article>

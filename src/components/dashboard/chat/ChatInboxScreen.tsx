@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/dashboard/AuthProvider";
-import { useChatUnread } from "@/components/dashboard/chat/ChatUnreadProvider";
+import { NotificationBell } from "@/components/dashboard/notifications/NotificationBell";
 import { ChatListSkeleton, SectionError } from "@/components/dashboard/ui/Skeletons";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -11,26 +11,35 @@ import {
   selectConversationsStatus,
   selectParticipantNames,
 } from "@/store/selectors/chatSelectors";
+import { selectOwnedCommunities } from "@/store/selectors/sharedSelectors";
 import { fetchConversations } from "@/store/slices/chatSlice";
-import styles from "../social.module.css";
-import ui from "../app-ui.module.css";
+import { fetchOwnedCommunities } from "@/store/slices/communitiesSlice";
+import styles from "../home.module.css";
+
+type ChatMode = "all" | "people" | "communities";
+
+type ChatInboxProps = {
+  embedded?: boolean;
+};
 
 /**
- * 1:1 chat inbox — shows unread message counts per chat + polls for updates.
+ * Chat inbox — people and communities in one list.
  */
-export function ChatInboxScreen() {
+export function ChatInboxScreen({ embedded = false }: ChatInboxProps) {
   const dispatch = useAppDispatch();
   const { user, profile } = useAuth();
   const userId = profile?.id || user?.id || "";
-  const { unreadTotal, unreadChats } = useChatUnread();
   const conversations = useAppSelector(selectConversations);
   const names = useAppSelector(selectParticipantNames);
   const status = useAppSelector(selectConversationsStatus);
+  const communities = useAppSelector(selectOwnedCommunities);
+  const [mode, setMode] = useState<ChatMode>("all");
   const loading = status !== "succeeded" && status !== "failed" && conversations.length === 0;
 
   useEffect(() => {
     if (!userId) return;
     void dispatch(fetchConversations({ userId }));
+    void dispatch(fetchOwnedCommunities({ userId }));
   }, [dispatch, userId]);
 
   const rows = conversations
@@ -41,12 +50,6 @@ export function ChatInboxScreen() {
         conversation,
         name: names[otherId] || "Member",
         preview: last?.body || "No messages yet",
-        time: last
-          ? new Date(last.createdAt).toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-            })
-          : "",
         unread: conversation.unreadCount,
       };
     })
@@ -55,78 +58,96 @@ export function ChatInboxScreen() {
       return b.conversation.updatedAt.localeCompare(a.conversation.updatedAt);
     });
 
+  const showPeople = mode !== "communities";
+  const showCommunities = mode !== "people";
+
   return (
-    <div className={ui.page}>
-      <header className={ui.header}>
+    <div className={embedded ? styles.flowEmbed : styles.flow}>
+      <header className={styles.pageHead}>
         <div>
-          <div className={ui.logo}>Chat</div>
-          {!loading && unreadTotal > 0 ? (
-            <p className={ui.small} style={{ margin: "4px 0 0" }}>
-              {unreadChats} unread {unreadChats === 1 ? "chat" : "chats"} ·{" "}
-              {unreadTotal} unread {unreadTotal === 1 ? "message" : "messages"}
-            </p>
-          ) : null}
+          <h1>Chats</h1>
+          <p>People and communities in one place.</p>
         </div>
-        <Link href="/dashboard/people" className={ui.iconBtn} aria-label="Find people">
-          ＋
-        </Link>
+        <NotificationBell />
       </header>
 
-      <div className={ui.content}>
-        {loading && rows.length === 0 ? (
-          <ChatListSkeleton />
-        ) : status === "failed" && rows.length === 0 ? (
-          <SectionError
-            message="Couldn't load chats."
-            onRetry={() => void dispatch(fetchConversations({ userId, force: true }))}
-          />
-        ) : rows.length === 0 ? (
-          <div className={styles.empty}>
-            <h3>Your conversations will appear here.</h3>
-            <p>Connect with someone and start a conversation.</p>
-            <div className={styles.emptyActions}>
-              <Link
-                href="/dashboard/people"
-                className={`${styles.btn} ${styles.btnPrimary}`}
-              >
-                Explore People
-              </Link>
-            </div>
-          </div>
-        ) : (
-          rows.map((row) => {
-            const isUnread = row.unread > 0;
-            return (
-              <Link
-                key={row.conversation.id}
-                href={`/dashboard/chat/${row.conversation.id}`}
-                className={`${ui.listBtn} ${isUnread ? ui.listBtnUnread : ""}`}
-              >
-                <span className={ui.listIcon} aria-hidden="true">
-                  {(row.name[0] || "V").toUpperCase()}
-                </span>
-                <span
-                  className={`${ui.listMeta} ${isUnread ? ui.listMetaUnread : ""}`}
-                >
-                  <b>{row.name}</b>
-                  <p>{row.preview}</p>
-                </span>
-                <span className={ui.listSide}>
-                  <span className={ui.small}>{row.time}</span>
-                  {isUnread ? (
-                    <span
-                      className={ui.unreadCount}
-                      aria-label={`${row.unread} unread messages`}
-                    >
-                      {row.unread > 9 ? "9+" : row.unread}
-                    </span>
-                  ) : null}
-                </span>
-              </Link>
-            );
-          })
-        )}
+      <div className={styles.modes} role="tablist" aria-label="Chat types">
+        {(
+          [
+            ["all", "All"],
+            ["people", "People"],
+            ["communities", "Communities"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={mode === id ? styles.modeOn : undefined}
+            onClick={() => setMode(id)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
+
+      {showPeople && loading && rows.length === 0 ? <ChatListSkeleton /> : null}
+      {showPeople && status === "failed" && rows.length === 0 ? (
+        <SectionError
+          message="Couldn't load chats."
+          onRetry={() => void dispatch(fetchConversations({ userId, force: true }))}
+        />
+      ) : null}
+
+      {showPeople && !loading && rows.length === 0 && status !== "failed" ? (
+        <div className={styles.empty}>
+          <h3>Your conversations will appear here.</h3>
+          <p>Connect with someone and start a conversation.</p>
+          <Link href="/dashboard/people" className={`${styles.btn} ${styles.reset}`}>
+            Meet people
+          </Link>
+        </div>
+      ) : null}
+
+      {showPeople
+        ? rows.map((row) => (
+            <Link
+              key={row.conversation.id}
+              href={`/dashboard/chat/${row.conversation.id}`}
+              className={styles.chatRow}
+            >
+              <span className={styles.chatAvatar} aria-hidden="true">
+                {(row.name[0] || "V").toUpperCase()}
+              </span>
+              <span className={styles.chatCopy}>
+                <b>{row.name}</b>
+                <small>{row.preview}</small>
+              </span>
+              {row.unread > 0 ? (
+                <span className={styles.unread} aria-label={`${row.unread} unread messages`}>
+                  {row.unread > 9 ? "9+" : row.unread}
+                </span>
+              ) : null}
+            </Link>
+          ))
+        : null}
+
+      {showCommunities && communities.length === 0 ? (
+        <p className={styles.quiet}>Join a community to see its group chat here.</p>
+      ) : null}
+
+      {showCommunities
+        ? communities.map((community) => (
+            <Link key={community.id} href="/dashboard/community" className={styles.chatRow}>
+              <span className={styles.chatAvatar} aria-hidden="true">
+                {community.icon}
+              </span>
+              <span className={styles.chatCopy}>
+                <b>{community.name}</b>
+                <small>Community · {community.memberCount} members</small>
+              </span>
+            </Link>
+          ))
+        : null}
     </div>
   );
 }

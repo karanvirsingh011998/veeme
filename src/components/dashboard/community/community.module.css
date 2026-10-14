@@ -1,8 +1,8 @@
 .page {
-  width: min(100%, 560px);
+  width: min(100%, 720px);
   max-width: 100%;
   margin: 0 auto;
-  padding: 8px 16px 28px;
+  padding: 22px 19px 30px;
 }
 
 @media (min-width: 1024px) {
@@ -23,8 +23,10 @@
 
 .header h1 {
   margin: 0;
-  font-size: 22px;
-  letter-spacing: -0.04em;
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
 }
 
 .add {

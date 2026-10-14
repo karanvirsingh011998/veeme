@@ -1,18 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  /* Veeme Refined — peach palette */
-  --vemee-bg: #fffdfa;
+  /* Veeme — warm cream palette from the mobile design */
+  --vemee-bg: #fbf7f2;
   --vemee-surface: #ffffff;
-  --vemee-ink: #2d211c;
-  --vemee-muted: #73665f;
-  --vemee-line: #ece2db;
-  --vemee-peach: #d77e49;
-  --vemee-peach-2: #c16d45;
-  --vemee-peach-soft: #fcebde;
-  --vemee-band: #faf0e8;
-  --vemee-deep: #3b2921;
+  --vemee-ink: #30241f;
+  --vemee-muted: #80746d;
+  --vemee-line: #efe8e1;
+  --vemee-peach: #d77d5c;
+  --vemee-peach-2: #b75d40;
+  --vemee-peach-soft: #f8ece4;
+  --vemee-band: #f3e3d8;
+  --vemee-deep: #382820;
   --vemee-on-peach: #ffffff;
+  --vemee-green-ok: #467a5c;
+  --vemee-green-bg: #e6f3ea;
 
   /* Legacy aliases used across app chrome */
   --vemee-green: var(--vemee-peach);
@@ -27,9 +29,9 @@
   --radius-lg: 20px;
   --radius-xl: 28px;
 
-  --shadow-card: 0 4px 18px rgba(45, 33, 28, 0.06);
-  --shadow-soft: 0 2px 10px rgba(45, 33, 28, 0.04);
-  --shadow-float: 0 14px 36px rgba(45, 33, 28, 0.1);
+  --shadow-card: 0 6px 26px rgba(77, 45, 31, 0.045);
+  --shadow-soft: 0 2px 10px rgba(77, 45, 31, 0.04);
+  --shadow-float: 0 14px 36px rgba(77, 45, 31, 0.1);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -84,7 +86,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: var(--vemee-bg);
+  background: #ede8e3;
   color: var(--vemee-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

@@ -112,7 +112,10 @@ export function ProfileScreen() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.pageTitle}>Profile</h1>
+        <div>
+          <h1 className={styles.pageTitle}>Profile</h1>
+          <p className={styles.lead}>Your participation, preferences and plan.</p>
+        </div>
         <button
           type="button"
           className={styles.editToggle}
@@ -241,6 +244,30 @@ export function ProfileScreen() {
             <span className={styles.menuText}>
               <strong>Explore Plans</strong>
               <small>Find activities near you</small>
+            </span>
+            <span className={styles.chevron} aria-hidden="true">
+              ›
+            </span>
+          </Link>
+          <Link href="/dashboard/moments" className={styles.menuItem}>
+            <span className={styles.menuIcon} aria-hidden="true">
+              ✦
+            </span>
+            <span className={styles.menuText}>
+              <strong>Moments</strong>
+              <small>Share updates from plans</small>
+            </span>
+            <span className={styles.chevron} aria-hidden="true">
+              ›
+            </span>
+          </Link>
+          <Link href="/membership" className={styles.menuItem}>
+            <span className={styles.menuIcon} aria-hidden="true">
+              ◈
+            </span>
+            <span className={styles.menuText}>
+              <strong>Membership</strong>
+              <small>{planName} plan</small>
             </span>
             <span className={styles.chevron} aria-hidden="true">
               ›

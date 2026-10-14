@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function PeoplePage() {
   return (
-    <div style={{ padding: "16px 16px 28px", maxWidth: 900, margin: "0 auto" }}>
+    <div style={{ padding: "22px 19px 30px", maxWidth: 1120, margin: "0 auto" }}>
       <PeopleScreen />
     </div>
   );

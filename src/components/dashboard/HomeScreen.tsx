@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import { LocationPrompt } from "@/components/dashboard/location/LocationPrompt";
@@ -14,7 +14,7 @@ import {
   PlanCardSkeleton,
   SectionError,
 } from "@/components/dashboard/ui/Skeletons";
-import { readApproxLocation } from "@/lib/location/geo";
+import { MANUAL_CITIES, readApproxLocation } from "@/lib/location/geo";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   selectHomePlans,
@@ -22,25 +22,35 @@ import {
   selectHomePlansStatus,
   selectJoinedMap,
 } from "@/store/selectors/planSelectors";
-import {
-  selectApproxLocation,
-  selectPeople,
-} from "@/store/selectors/sharedSelectors";
+import { selectApproxLocation } from "@/store/selectors/sharedSelectors";
 import { fetchHomePlans, joinPlanOptimistic } from "@/store/slices/plansSlice";
-import { fetchPeopleCards } from "@/store/slices/peopleSlice";
-import { Logo } from "@/components/ui/Logo";
+import { commitApproxLocation } from "@/store/slices/locationSlice";
 import styles from "./home.module.css";
 
-type HomeFilter = "all" | "individual" | "community";
+type HomeFilter =
+  | "all"
+  | "individual"
+  | "group"
+  | "week"
+  | "weekend"
+  | "near"
+  | "food"
+  | "fitness"
+  | "outdoor";
 
-const FILTERS: { id: HomeFilter; label: string }[] = [
-  { id: "all", label: "All" },
+const CHIPS: { id: Exclude<HomeFilter, "all">; label: string }[] = [
   { id: "individual", label: "Individual" },
-  { id: "community", label: "Community" },
+  { id: "group", label: "Group" },
+  { id: "week", label: "This week" },
+  { id: "weekend", label: "Weekend" },
+  { id: "near", label: "Near me" },
+  { id: "food", label: "Coffee" },
+  { id: "fitness", label: "Fitness" },
+  { id: "outdoor", label: "Outdoor" },
 ];
 
 /**
- * Home discovery feed — vibe chooser, plan cards, and people to meet.
+ * Discover feed — search, activity chips, and plan cards.
  */
 export function HomeScreen() {
   const dispatch = useAppDispatch();
@@ -53,15 +63,14 @@ export function HomeScreen() {
   )[0]!.toUpperCase();
   const storedLocation = useAppSelector(selectApproxLocation);
   const nearbyPlans = useAppSelector(selectHomePlans);
-  const people = useAppSelector(selectPeople).slice(0, 8);
   const joined = useAppSelector(selectJoinedMap);
   const plansStatus = useAppSelector(selectHomePlansStatus);
   const plansError = useAppSelector(selectHomePlansError);
   const plansLoading = plansStatus === "idle" || plansStatus === "loading";
-  const heroRef = useRef<HTMLElement>(null);
-  const plansRef = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<HomeFilter>("all");
-  const [dockVisible, setDockVisible] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [areaOpen, setAreaOpen] = useState(false);
   const [savedIds, setSavedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -69,37 +78,14 @@ export function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-    const root = hero.closest("[data-app-scroll]");
-    const observer = new IntersectionObserver(
-      ([entry]) => setDockVisible(!entry.isIntersecting),
-      {
-        root: root instanceof Element ? root : null,
-        rootMargin: "-72px 0px 0px 0px",
-        threshold: 0,
-      },
-    );
-    observer.observe(hero);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     if (!userId) return;
     const loc = storedLocation ?? readApproxLocation();
     void dispatch(fetchHomePlans({ userId, location: loc }));
-    void dispatch(fetchPeopleCards({ userId, location: loc }));
   }, [dispatch, storedLocation, userId]);
 
   function retry() {
     const loc = storedLocation ?? readApproxLocation();
     void dispatch(fetchHomePlans({ userId, location: loc, force: true }));
-    void dispatch(fetchPeopleCards({ userId, location: loc, force: true }));
-  }
-
-  function applyFilter(next: HomeFilter) {
-    setFilter(next);
-    plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function toggleSaved(planId: string) {
@@ -112,117 +98,165 @@ export function HomeScreen() {
     });
   }
 
-  const plans = nearbyPlans.filter((plan) => {
-    if (filter === "individual") return plan.visibility !== "community";
-    if (filter === "community") return plan.visibility === "community";
-    return true;
-  });
-  const heading =
-    filter === "individual"
-      ? "Individual plans"
-      : filter === "community"
-        ? "Group plans"
-        : "Plans for you";
-  const showDock = dockVisible || filter !== "all";
+  const areaLabel =
+    storedLocation?.area || storedLocation?.city || "Explore nearby";
 
-  const peopleStrip =
-    people.length > 0 ? (
-      <section className={styles.people} aria-label="People you may like">
-        <div className={styles.peopleHead}>
-          <strong>People you may like</strong>
-          <Link href="/dashboard/people" className={styles.seeAll}>
-            See all
-          </Link>
-        </div>
-        <div className={styles.peopleRow}>
-          {people.map((person) => (
-            <Link
-              key={person.id}
-              href={`/dashboard/people/${person.id}`}
-              className={styles.person}
-            >
-              <span className={styles.personAvatar}>
-                {person.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={person.avatarUrl} alt="" />
-                ) : (
-                  (person.name[0] || "V").toUpperCase()
-                )}
-              </span>
-              <b>{person.name.split(" ")[0]}</b>
-              <span>{person.interests[0] || person.distanceLabel || "Member"}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-    ) : null;
+  const plans = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return nearbyPlans.filter((plan) => {
+      if (filter === "individual" && plan.visibility === "community") return false;
+      if (filter === "group" && plan.visibility !== "community") return false;
+      if (filter === "food" && plan.category !== "food") return false;
+      if (filter === "fitness" && plan.category !== "fitness") return false;
+      if (filter === "outdoor" && plan.category !== "outdoor") return false;
+      if (filter === "week" || filter === "weekend") {
+        const when = new Date(`${plan.date}T12:00:00`);
+        if (Number.isNaN(when.getTime())) return false;
+        if (filter === "week") {
+          const ahead = when.getTime() - Date.now();
+          if (ahead > 7 * 864e5 || ahead < -864e5) return false;
+        } else {
+          const day = when.getDay();
+          if (day !== 0 && day !== 6) return false;
+        }
+      }
+      if (filter === "near" && plan.distanceLabel) {
+        const km = Number.parseFloat(plan.distanceLabel);
+        if (!Number.isNaN(km) && km > 20) return false;
+      }
+      if (!needle) return true;
+      const hay = `${plan.title} ${plan.description} ${plan.categoryLabel} ${plan.locationLabel}`.toLowerCase();
+      return hay.includes(needle);
+    });
+  }, [filter, nearbyPlans, query]);
+
+  const activeChip = CHIPS.find((chip) => chip.id === filter);
+  const heading = query.trim()
+    ? "Matching plans"
+    : filter === "all"
+      ? "Plans worth joining"
+      : `${activeChip?.label || "Filtered"} plans`;
 
   return (
     <div className={styles.page}>
       <LocationPrompt />
-      <header className={styles.header}>
+      <header className={styles.top}>
         <div>
-          <div className={styles.brand}>
-            <h1>
-              <Logo height={40} priority />
-            </h1>
+          <div className={styles.logo}>
+            <span className={styles.logoMark} aria-hidden="true">
+              <LeafIcon />
+            </span>
+            vemee<b>.</b>
           </div>
-          <p className={styles.tagline}>Find activities and people to join.</p>
+          <p className={styles.subtitle}>Good plans. Better company.</p>
         </div>
-        <div className={styles.headerActions}>
+        <div className={styles.actions}>
           <NotificationBell />
-          <Link href="/dashboard/profile" className={styles.avatar} aria-label="Open profile">
+          <Link href="/dashboard/profile" className={styles.profileBtn} aria-label="Open profile">
             {initial}
           </Link>
         </div>
       </header>
 
-      <section className={styles.vibe} ref={heroRef}>
-        <div className={styles.vibeCopy}>
-          <p className={styles.kicker}>Start with a vibe</p>
-          <h2>What would you like to do?</h2>
-          <p>Find a plan, meet someone new, or explore a community.</p>
-        </div>
-        <div className={styles.vibeActions}>
-          <button type="button" className={styles.vibeAction} onClick={() => applyFilter("individual")}>
-            <UserIcon />
-            <span>Individual plans</span>
-          </button>
-          <button type="button" className={styles.vibeAction} onClick={() => applyFilter("community")}>
-            <GroupIcon />
-            <span>Group plans</span>
-          </button>
-          <Link href="/dashboard/people" className={styles.vibeAction}>
-            <PeopleIcon />
-            <span>Find people</span>
-          </Link>
-        </div>
-      </section>
-
-      <div className={`${styles.dock} ${showDock ? styles.dockVisible : ""}`}>
-        <div className={styles.segments} role="tablist" aria-label="Plan type">
-          {FILTERS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={filter === item.id ? styles.segmentActive : styles.segment}
-              onClick={() => applyFilter(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-          <Link href="/dashboard/explore" className={styles.sliders} aria-label="More filters">
-            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-              <path d="M4 7h16M7 12h10M10 17h4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </Link>
-        </div>
+      <div className={styles.intro}>
+        <p className={styles.eyebrow}>Explore activities</p>
+        <h1 className={styles.title}>
+          Find your people,
+          <br />
+          one plan at a time.
+        </h1>
       </div>
 
-      <div className={styles.feedHead} ref={plansRef}>
-        <h2>{heading}</h2>
-        <Link href="/dashboard/explore" className={styles.seeAll}>
-          See all plans
+      <button
+        type="button"
+        className={styles.locationBtn}
+        aria-label="Choose your area"
+        onClick={() => setAreaOpen(true)}
+      >
+        <PinIcon />
+        {areaLabel}
+        <ChevronIcon />
+      </button>
+
+      <label className={styles.search}>
+        <SearchIcon />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          aria-label="Search plans"
+          placeholder="Try coffee, badminton, art..."
+          autoComplete="off"
+        />
+        {query ? (
+          <button type="button" className={styles.clear} onClick={() => setQuery("")}>
+            Clear
+          </button>
+        ) : null}
+      </label>
+
+      <div className={styles.chips} aria-label="Activity filters">
+        <button
+          type="button"
+          className={`${styles.chip} ${filtersOpen || filter !== "all" ? styles.chipOn : ""}`}
+          onClick={() => setFiltersOpen((open) => !open)}
+        >
+          <SlidersIcon />
+          Filter{activeChip ? ` · ${activeChip.label}` : ""}
+        </button>
+        {CHIPS.map((chip) => (
+          <button
+            key={chip.id}
+            type="button"
+            className={filter === chip.id ? `${styles.chip} ${styles.chipOn}` : styles.chip}
+            onClick={() => {
+              setFilter((current) => (current === chip.id ? "all" : chip.id));
+              setFiltersOpen(false);
+            }}
+          >
+            {chip.label}
+          </button>
+        ))}
+      </div>
+
+      {filtersOpen ? (
+        <div className={styles.filterPanel}>
+          <button
+            type="button"
+            className={filter === "all" ? styles.filterOptionOn : styles.filterOption}
+            onClick={() => {
+              setFilter("all");
+              setFiltersOpen(false);
+            }}
+          >
+            All plans
+          </button>
+          {CHIPS.map((chip) => (
+            <button
+              key={chip.id}
+              type="button"
+              className={filter === chip.id ? styles.filterOptionOn : styles.filterOption}
+              onClick={() => {
+                setFilter(chip.id);
+                setFiltersOpen(false);
+              }}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      <div className={styles.section}>
+        <div>
+          <h2>{heading}</h2>
+          <p className={styles.count}>
+            {plans.length === 1 ? "1 activity" : `${plans.length} activities`}
+            {storedLocation?.city ? ` · ${storedLocation.city}` : ""}
+          </p>
+        </div>
+        <Link href="/dashboard/people" className={styles.textBtn}>
+          Meet people
+          <ChevronRightIcon />
         </Link>
       </div>
 
@@ -232,70 +266,147 @@ export function HomeScreen() {
         <SectionError message={plansError} onRetry={retry} />
       ) : plans.length === 0 ? (
         <div className={styles.empty}>
-          <h3>{filter === "all" ? "No plans nearby" : "No plans in this filter"}</h3>
-          <p>
-            {filter === "all"
-              ? "Be the first to create one in your area."
-              : "Try another vibe, or post a plan of your own."}
-          </p>
+          <h3>No plans match just yet</h3>
+          <p>Try another activity, location or time filter.</p>
+          <button
+            type="button"
+            className={`${styles.btnLight} ${styles.reset}`}
+            onClick={() => {
+              setFilter("all");
+              setQuery("");
+            }}
+          >
+            Reset filters
+          </button>
         </div>
       ) : (
-        <div className={styles.feed}>
-          {plans.map((plan, index) => (
-            <div key={plan.id} style={{ display: "contents" }}>
-              <HomePlanCard
-                plan={plan}
-                viewerId={userId}
-                saved={savedIds.includes(plan.id)}
-                joined={joined[plan.id]}
-                onSave={toggleSaved}
-                onJoin={(id) => {
-                  if (!userId) return;
-                  void dispatch(joinPlanOptimistic({ planId: id, userId }));
-                }}
-              />
-              {index === 1 ? peopleStrip : null}
-            </div>
+        <div className={styles.cards}>
+          {plans.map((plan) => (
+            <HomePlanCard
+              key={plan.id}
+              plan={plan}
+              viewerId={userId}
+              saved={savedIds.includes(plan.id)}
+              joined={joined[plan.id]}
+              onSave={toggleSaved}
+              onJoin={(id) => {
+                if (!userId) return;
+                void dispatch(joinPlanOptimistic({ planId: id, userId }));
+              }}
+            />
           ))}
-          {plans.length < 2 ? peopleStrip : null}
         </div>
       )}
 
-      {plans.length === 0 ? peopleStrip : null}
+      <div className={styles.section}>
+        <h2>Also explore</h2>
+      </div>
+      <div className={styles.exploreRow}>
+        <Link href="/dashboard/people" className={styles.btnLight}>
+          People
+        </Link>
+        <Link href="/dashboard/moments" className={styles.btnLight}>
+          Moments
+        </Link>
+      </div>
 
-      <Link href="/dashboard/explore" className={styles.explore}>
-        Explore all plans
-      </Link>
+      {areaOpen ? (
+        <div className={styles.sheetBackdrop} onClick={() => setAreaOpen(false)}>
+          <div
+            className={styles.sheet}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="area-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.sheetHandle} />
+            <div className={styles.sheetHead}>
+              <h2 id="area-title">Choose your area</h2>
+              <button type="button" className={styles.profileBtn} onClick={() => setAreaOpen(false)} aria-label="Close">
+                ×
+              </button>
+            </div>
+            <div className={styles.cityList}>
+              {MANUAL_CITIES.map((city) => (
+                <button
+                  key={`${city.city}-${city.area}`}
+                  type="button"
+                  onClick={() => {
+                    dispatch(
+                      commitApproxLocation({
+                        lat: city.lat,
+                        lng: city.lng,
+                        city: city.city,
+                        area: city.area,
+                        source: "manual",
+                        updatedAt: new Date().toISOString(),
+                      }),
+                    );
+                    setAreaOpen(false);
+                  }}
+                >
+                  {city.city}
+                  <span>{city.area}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function UserIcon() {
+function LeafIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M5.5 19c.6-3.2 2.6-5 6.5-5s5.9 1.8 6.5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M20 4c-9 0-15 3-15 10a6 6 0 0 0 6 6c7 0 10-6 9-16z" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M4 21c2-6 6-9 12-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
 
-function GroupIcon() {
+function PinIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="8" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.7" />
-      <circle cx="16" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M3.8 18c.4-2.4 1.8-3.6 4.2-3.6s3.8 1.2 4.2 3.6M11.8 18c.4-2.4 1.8-3.6 4.2-3.6s3.8 1.2 4.2 3.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0z" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }
 
-function PeopleIcon() {
+function ChevronIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="8" r="2.6" stroke="currentColor" strokeWidth="1.7" />
-      <circle cx="6" cy="10" r="2" stroke="currentColor" strokeWidth="1.7" />
-      <circle cx="18" cy="10" r="2" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M7 19c.3-2.4 1.8-3.6 5-3.6s4.7 1.2 5 3.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+      <path d="m16 16 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SlidersIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="8" cy="6" r="2" fill="currentColor" />
+      <circle cx="15" cy="12" r="2" fill="currentColor" />
+      <circle cx="10" cy="18" r="2" fill="currentColor" />
     </svg>
   );
 }

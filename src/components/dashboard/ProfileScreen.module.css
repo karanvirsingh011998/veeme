@@ -1,5 +1,5 @@
 .page {
-  padding: 0 16px 36px;
+  padding: 22px 19px 36px;
   max-width: 560px;
   margin: 0 auto;
 }
@@ -15,9 +15,15 @@
 .pageTitle {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 750;
-  letter-spacing: -0.7px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.lead {
+  margin: 5px 0 0;
+  color: var(--vemee-muted);
+  font-size: 12px;
 }
 
 .editToggle {
@@ -33,28 +39,26 @@
 
 .hero {
   margin-top: 4px;
-  padding: 28px 20px 24px;
-  border-radius: 28px;
-  background:
-    radial-gradient(ellipse 80% 70% at 20% 0%, rgba(255, 255, 255, 0.65), transparent 55%),
-    var(--vemee-peach-soft);
-  border: 1px solid #ead5c6;
-  text-align: center;
+  padding: 20px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f4dccc, #f7ebdf);
+  border: 0;
+  text-align: left;
 }
 
 .avatar {
-  width: 84px;
-  height: 84px;
-  margin: 0 auto;
+  width: 54px;
+  height: 54px;
+  margin: 0;
   border-radius: 50%;
-  background: var(--vemee-peach);
-  color: #fff;
+  background: #fff;
+  color: #88523a;
   display: grid;
   place-items: center;
   font-family: var(--font-display);
-  font-size: 34px;
-  font-weight: 750;
-  box-shadow: 0 10px 24px rgba(215, 126, 73, 0.28);
+  font-size: 19px;
+  font-weight: 800;
+  box-shadow: none;
 }
 
 .name {
@@ -143,7 +147,7 @@
 .membershipLink {
   display: flex;
   width: fit-content;
-  margin: 10px auto 0;
+  margin: 10px 0 0;
   color: var(--vemee-peach-2);
   font-size: 14px;
   font-weight: 750;
@@ -301,13 +305,13 @@
   }
 
   .hero {
-    padding: 36px 28px 28px;
+    padding: 24px;
   }
 
   .avatar {
-    width: 96px;
-    height: 96px;
-    font-size: 38px;
+    width: 64px;
+    height: 64px;
+    font-size: 22px;
   }
 }
 

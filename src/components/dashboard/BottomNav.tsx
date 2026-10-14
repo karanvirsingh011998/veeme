@@ -8,23 +8,22 @@ import styles from "./BottomNav.module.css";
 const TABS = [
   {
     href: "/dashboard",
-    label: "Home",
+    label: "Discover",
     match: (path: string) => path === "/dashboard",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M3.5 10.5 12 3.8l8.5 6.7v9.2a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19.7z" />
-        <path d="M9 21v-6.2h6V21" />
+        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" />
       </svg>
     ),
   },
   {
-    href: "/dashboard/moments",
-    label: "Moments",
-    match: (path: string) => path.startsWith("/dashboard/moments"),
+    href: "/dashboard/plans",
+    label: "My plans",
+    match: (path: string) => path === "/dashboard/plans",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="8" />
-        <path d="M10.2 9.2v5.6l4.8-2.8-4.8-2.8Z" />
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M7 3v4M17 3v4M3 10h18" />
       </svg>
     ),
   },
@@ -45,39 +44,27 @@ const TABS = [
     match: (path: string) => path.startsWith("/dashboard/people"),
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="7.5" r="3.2" />
-        <circle cx="5.8" cy="12.5" r="2.4" />
-        <circle cx="18.2" cy="12.5" r="2.4" />
-        <path d="M6 20c.3-3 2.1-5 6-5s5.7 2 6 5" />
+        <circle cx="9" cy="8" r="3" />
+        <path d="M2 20v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2" />
+        <path d="M17 5a3 3 0 0 1 0 6M22 20v-2a5 5 0 0 0-4-5" />
       </svg>
     ),
   },
   {
     href: "/dashboard/chat",
-    label: "Chat",
+    label: "Chats",
     match: (path: string) => path.startsWith("/dashboard/chat"),
     badge: "chat" as const,
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M5 5.5h14a2 2 0 0 1 2 2v8.2a2 2 0 0 1-2 2H11l-4.7 3v-3H5a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/dashboard/profile",
-    label: "Profile",
-    match: (path: string) => path.startsWith("/dashboard/profile"),
-    icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="7.2" r="3.2" />
-        <path d="M5.2 20c.4-4.1 2.6-6.2 6.8-6.2s6.4 2.1 6.8 6.2" />
+        <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9.8 9.8 0 0 1-4-.8L3 21l1.8-5.5a8.5 8.5 0 1 1 16.2-4z" />
       </svg>
     ),
   },
 ] as const;
 
 /**
- * Mobile bottom navigation — Home, Moments, Create, People, Chat, Profile.
+ * Mobile bottom navigation — Discover, My plans, Create, People, Chats.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -97,18 +84,22 @@ export function BottomNav() {
             aria-current={active ? "page" : undefined}
             aria-label={
               showChatBadge
-                ? `Chat, ${unreadChats} unread ${unreadChats === 1 ? "chat" : "chats"}`
+                ? `Chats, ${unreadChats} unread ${unreadChats === 1 ? "chat" : "chats"}`
                 : tab.label
             }
           >
-            <span className={styles.navIcon}>
-              {tab.icon}
-              {showChatBadge ? (
-                <span className={styles.badge} aria-hidden="true">
-                  {unreadChats > 9 ? "9+" : unreadChats}
-                </span>
-              ) : null}
-            </span>
+            {"create" in tab && tab.create ? (
+              <span className={styles.orb}>{tab.icon}</span>
+            ) : (
+              <span className={styles.navIcon}>
+                {tab.icon}
+                {showChatBadge ? (
+                  <span className={styles.badge} aria-hidden="true">
+                    {unreadChats > 9 ? "9+" : unreadChats}
+                  </span>
+                ) : null}
+              </span>
+            )}
             {tab.label}
           </Link>
         );
